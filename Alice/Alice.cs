@@ -27,7 +27,7 @@ namespace Alice
             ["Сәлам Исәнмесез Хәлләр ничек"] = x => x.Reply("Абау, сез дә татарча беләсез мәллә? Әфәрин!"),
             ["удали почисти"] = x => x.Reply(Repository.ClearBusStops(x.Session.UserId)),
             ["покажи список"] = x => x.Reply(Repository.ShowClientBusStops(x.Session.UserId)),
-            ["добавь"] = x => x.Reply(Repository.AddBusStop(x.Request.Command.Substring(7), x.Session.UserId)),
+            ["добавь добавить"] = x => x.Reply(Repository.AddBusStop(x.Request.Command.Substring(7), x.Session.UserId)),
             ["*"] = x => x.Reply("Даже не знаю, что вам ответить")
         };
 
