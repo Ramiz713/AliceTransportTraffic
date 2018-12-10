@@ -38,14 +38,15 @@ namespace TrafficTimetable.Infrastructure
         {
             var parser = new HtmlParser();
             string htmlCode;
-            //using (WebClient wb = new WebClient())
-            //{
-            //    htmlCode = wb.DownloadString("http://navi.kazantransport.ru/old-site/wap/online/?st_id=81");
-            //}
-            using (StreamReader sr = new StreamReader("..\\TextFile1.txt", Encoding.UTF8))
+            using (WebClient wb = new WebClient())
             {
-                htmlCode = sr.ReadToEnd();
+                //здесь скачивать url
+                htmlCode = wb.DownloadString("http://navi.kazantransport.ru/old-site/wap/online/?st_id=13");
             }
+            //using (StreamReader sr = new StreamReader("..\\TextFile1.txt", Encoding.UTF8))
+            //{
+            //    htmlCode = sr.ReadToEnd();
+            //}
             var document = parser.Parse(htmlCode);
             var smth = document.QuerySelectorAll("a").Where(x => x.TextContent != ">>").ToArray();
             var items = new List<Stop>();
