@@ -14,24 +14,25 @@ namespace TrafficTimetable.Domain
         private readonly string firstTime;
         private readonly string secondTime;
 
-        public Stop(string route, string direction, string time1, string time2)
+        public Stop(string route, string direction, string firstTime, string secondTime)
         {
             this.route = route;
             this.direction = direction;
-            firstTime = time1;
-            secondTime = time2;
+            this.firstTime = firstTime;
+            this.secondTime = secondTime;
         }
 
         public override string ToString()
         {
-            return
-                route + "\t" + direction + "\t" + firstTime + "\t" + secondTime;
+            return $"{route}\t${direction}\t{firstTime}\t{secondTime}";
         }
     }
 
     public static class Parser
     {
-        private static string linkPattern = "http://navi.kazantransport.ru/old-site/wap/online/";
+        private static readonly string noInfoMessage = "нет инфы о маршруте, который тебе нужен";
+
+        private static readonly string linkPattern = "http://navi.kazantransport.ru/old-site/wap/online/";
 
         private static IHtmlDocument ParseUrl(string url)
         {
@@ -48,7 +49,9 @@ namespace TrafficTimetable.Domain
         private static string FindTime(string url, string routeNum)
         {
             var document = ParseUrl(url);
-            var data = document.QuerySelectorAll("a").Where(x => x.TextContent != ">>").ToArray();
+            var data = document.QuerySelectorAll("a")
+                .Where(x => x.TextContent != ">>")
+                .ToArray();
             var items = new List<Stop>();
             for (int i = 0; i < data.Take(data.Count() - 6).Count(); i += 4)
             {
@@ -71,7 +74,7 @@ namespace TrafficTimetable.Domain
             }
             var stops = items.Where(s => s.route == routeNum);
             if (stops.Count() == 0)
-                return "нет инфы о маршруте, который тебе нужен";
+                return noInfoMessage;
             return stops.First().ToString(); 
         }
 
