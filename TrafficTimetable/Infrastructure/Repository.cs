@@ -1,78 +1,38 @@
-﻿using AngleSharp.Dom.Html;
-using AngleSharp.Parser.Html;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using TrafficTimetable.Domain;
 
 namespace TrafficTimetable.Infrastructure
 {
-    public class Stop
-    {
-        public string StopNum { get; set; }
-        public string Name { get; set; }
-        public string FirstTime { get; set; }
-        public string SecondTime { get; set; }
-
-        public Stop(string stopNum, string name, string time1, string time2)
-        {
-            StopNum = stopNum;
-            Name = name;
-            FirstTime = time1;
-            SecondTime = time2;
-        }
-
-        public override string ToString()
-        {
-            return
-                this.StopNum + "\t" + Name + "\t" + FirstTime + "\t" + SecondTime;
-        }
-    }
-    public static class Parser
-    {
-        public static List<Stop> Parse(string url)
-        {
-            var parser = new HtmlParser();
-            string htmlCode;
-            using (WebClient wb = new WebClient())
-            {
-                //здесь скачивать url
-                htmlCode = wb.DownloadString("http://navi.kazantransport.ru/old-site/wap/online/?st_id=13");
-            }
-            //using (StreamReader sr = new StreamReader("..\\TextFile1.txt", Encoding.UTF8))
-            //{
-            //    htmlCode = sr.ReadToEnd();
-            //}
-            var document = parser.Parse(htmlCode);
-            var smth = document.QuerySelectorAll("a").Where(x => x.TextContent != ">>").ToArray();
-            var items = new List<Stop>();
-            for (int i =0; i<smth.Take(smth.Count()-6).Count(); i+=4)
-            {
-                items.Add(new Stop(smth[i].TextContent, smth[i + 1].TextContent, smth[i + 2].TextContent, smth[i + 3].TextContent));
-            }
-            return items;
-
-        }
-    }
     public static class Repository
     {
         public static void Main()
-        {
-            //using (ClientDataContext db = new ClientDataContext())
-            //{
-            //    var clients = db.Clients.ToList();
-            //    foreach (var client in clients)
-            //        Console.WriteLine(client.Id);
-            //}
-            //Console.ReadKey();
-            string url = "здесь будет url";
-            var smth = Parser.Parse(url);
-            foreach (var item in smth)
-                Console.WriteLine(item.ToString());
+        {   //нет маршрута с таким номером
+            var routeException = Parser.FindRouteNum("3");
+            Console.WriteLine(routeException);
+            // ищем автобусный маршрут с номером 4
+            var route = Parser.FindRouteNum("4");
+            Console.WriteLine(route);
+            // получили ссылку
+            var directions = Parser.GetRouteChoice(route);
+
+            //
+            //можно конечно было бы инкапсулировать направления и маршрут в один метод но там будет труднее с пробрасыванием исключения
+            //
+            
+            // здесь для примера вывожу словарь направление и ссылку на него
+            // нужно выбрать направление и передать дальше ссылку
+            foreach (var d in directions)
+                Console.WriteLine(d.Key + " " + d.Value);
+            var linkToTime = Parser.GetStop(/*ссылка допустим первый элемент из словаря*/directions.ElementAt(0).Value, "РКБ");
+            Console.WriteLine(linkToTime);
+            var time = Parser.GetTime(linkToTime).Where(t=>t.route == "4").First();
+            //чтоб не выводить лишние номера маршрутов просто фильтруем все маршруты
+            Console.WriteLine(time.ToString());
+            
         }
 
         public static string AddBusStop(string busStop, string clientId)
