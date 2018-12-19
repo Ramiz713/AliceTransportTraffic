@@ -10,29 +10,21 @@ namespace TrafficTimetable.Infrastructure
     public static class Repository
     {
         public static void Main()
-        {   //нет маршрута с таким номером
-            var routeException = Parser.FindRouteNum("3");
-            Console.WriteLine(routeException);
-            // ищем автобусный маршрут с номером 4
-            var route = Parser.FindRouteNum("4");
-            Console.WriteLine(route);
-            // получили ссылку
-            var directions = Parser.GetRouteChoice(route);
-
-            //
-            //можно конечно было бы инкапсулировать направления и маршрут в один метод но там будет труднее с пробрасыванием исключения
-            //
+        {
+            var directions = Parser.GetDirectionsForRoute("4"); 
+            //может быть пустой словарь
+            //тогда это означает что нет маршрута с таким номером 
+            //сообщи об этом пользователю
+      
+           
             
             // здесь для примера вывожу словарь направление и ссылку на него
             // нужно выбрать направление и передать дальше ссылку
+            // ключ -  направление
+            // значение ссылка
             foreach (var d in directions)
                 Console.WriteLine(d.Key + " " + d.Value);
-            var linkToTime = Parser.GetStop(/*ссылка допустим первый элемент из словаря*/directions.ElementAt(0).Value, "РКБ");
-            Console.WriteLine(linkToTime);
-            var time = Parser.GetTime(linkToTime).Where(t=>t.route == "4").First();
-            //чтоб не выводить лишние номера маршрутов просто фильтруем все маршруты
-            Console.WriteLine(time.ToString());
-            
+            Console.WriteLine(Parser.GetTime(/*ссылка допустим первый элемент из словаря*/directions.ElementAt(0).Value, "РКБ",/*указать номер маршрута*/ "4"));    
         }
 
         public static string AddBusStop(string busStop, string clientId)

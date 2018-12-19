@@ -21,11 +21,11 @@ namespace TrafficTimetable.Domain
             firstTime = time1;
             secondTime = time2;
         }
-        //    для проверки вывода в консоли
+
         public override string ToString()
         {
             return
-                this.route + "\t" + direction + "\t" + firstTime + "\t" + secondTime;
+                route + "\t" + direction + "\t" + firstTime + "\t" + secondTime;
         }
     }
 
@@ -45,8 +45,8 @@ namespace TrafficTimetable.Domain
             return document;
         }
 
-        public static List<Stop> GetTime(string url)
-        {           
+        private static string FindTime(string url, string routeNum)
+        {
             var document = ParseUrl(url);
             var data = document.QuerySelectorAll("a").Where(x => x.TextContent != ">>").ToArray();
             var items = new List<Stop>();
@@ -65,14 +65,17 @@ namespace TrafficTimetable.Domain
                 else
                 {
                     i--;
-                }            
+                }
                 var stop = new Stop(route, stopName, ftime, stime);
                 items.Add(stop);
             }
-            return items;
+            var stops = items.Where(s => s.route == routeNum);
+            if (stops.Count() == 0)
+                return "нет инфы о маршруте, который тебе нужен";
+            return stops.First().ToString(); 
         }
 
-        public static string FindRouteNum(string routeNum)
+        private static string FindRouteNum(string routeNum)
         {
             var document = ParseUrl("http://navi.kazantransport.ru/old-site/wap/online/?tt_id=1");
             var routeData = document.QuerySelectorAll("a").Where(x => x.TextContent == routeNum).OfType<IHtmlAnchorElement>().ToList();
@@ -82,11 +85,11 @@ namespace TrafficTimetable.Domain
             }
             catch
             {
-                return "Нет маршрута с таким номером.";
+                return null;
             }
         }
 
-        public static Dictionary<string, string> GetRouteChoice(string url)
+        private static Dictionary<string, string> GetRouteChoice(string url)
         {
             var document = ParseUrl(url);
             var routes = new Dictionary<string, string>();
@@ -98,11 +101,25 @@ namespace TrafficTimetable.Domain
             return routes;
         }
 
-        public static string GetStop(string url, string stop)
+        private static string GetLinkForStop(string url, string stop)
         {
             var document = ParseUrl(url);
             var data = document.QuerySelectorAll("a").OfType<IHtmlAnchorElement>().Where(x => x.TextContent == stop);
             return linkPattern + data.First().Href.Remove(0, 9);
-        }        
+        }
+
+        public static Dictionary<string, string> GetDirectionsForRoute(string route)
+        {            
+            var linkToRoute = FindRouteNum(route);
+            if (linkToRoute == null)
+                return new Dictionary<string, string>();
+            return GetRouteChoice(linkToRoute);
+        }
+
+        public static string GetTime(string linkToDirection, string stopName, string routeNum)
+        {
+            var linkToTime = GetLinkForStop(linkToDirection, stopName);
+            return FindTime(linkToTime, routeNum);
+        }
     }
 }
