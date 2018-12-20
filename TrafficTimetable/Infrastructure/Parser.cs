@@ -55,10 +55,7 @@ namespace TrafficTimetable.Infrastructure
                 .Where(x => x.TextContent == routeNum)
                 .OfType<IHtmlAnchorElement>()
                 .ToList();
-            try
-            {
-                return linkPattern + routeData.Last().Href.Remove(0, 9);
-            }
+            try { return linkPattern + routeData.Last().Href.Remove(0, 9); }
             catch
             {
                 return null;
@@ -73,7 +70,7 @@ namespace TrafficTimetable.Infrastructure
                 .QuerySelectorAll("a")
                 .OfType<IHtmlAnchorElement>()
                 .Skip(1).ToList();
-            foreach (var item in data.Take(data.Count - 8))//поставил 8, т.к актуальны только первые два направления
+            foreach (var item in data.Take(data.Count - 6).Take(2))
                 routes.Add(item.Text, linkPattern + item.Href.Remove(0, 9));
             return routes;
         }

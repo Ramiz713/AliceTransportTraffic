@@ -17,7 +17,7 @@ namespace TrafficTimetable
         public string Name { get; set; }
 
         [NotMapped]
-        public Dictionary<string, string> Directions;
+        public Dictionary<string, string> BufferDirections;
         [NotMapped]
         public string BufferStopName;
         [NotMapped]

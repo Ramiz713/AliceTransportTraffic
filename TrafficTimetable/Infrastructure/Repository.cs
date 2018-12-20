@@ -5,11 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Web;
 using TrafficTimetable.Domain;
 
 namespace TrafficTimetable.Infrastructure
 {
-    public static class Repository
+    internal static class Repository
     {
         public static void Main()
         {
@@ -61,15 +62,30 @@ namespace TrafficTimetable.Infrastructure
             return "Назовите маршрут, время прибытия которого хотите узнать";
         }
 
-        //public static string AddStop(string clientId, string direction)
-        //{
-        //    var client = GetClient(clientId);
-        //    var directionUrl = (direction == "1")
-        //        ? client.Directions.First().Key
-        //        : client.Directions.Last().Key;
-        //    var stopLink = Parser.GetStop(directionUrl, client.BufferStopName);
-        //    var time = Parser.GetTime(stopLink)
-        //}
+        public static string AddStop(string clientId, string direction)
+        {
+            var client = GetClient(clientId);
+            var directionUrl = (direction == "1")
+                ? client.BufferDirections.First().Value
+                : client.BufferDirections.Last().Value;
+            var stopLink = Parser.GetStop(directionUrl, client.BufferStopName);
+            var stopUri = new Uri(stopLink);
+            var stopId = HttpUtility.ParseQueryString(stopUri.Query).Get("st_id");
+            var stop = new Stop(stopId, client.BufferStopName, stopLink);
+            using (ClientDataContext db = new ClientDataContext())
+            {
+                db.Stops.Add(stop);
+                db.ClientTags.Add(new ClientTag(clientId, client.BufferTagName, stopId));
+                db.SaveChanges();
+            }
+            var times = Parser.GetTime(stop);
+            string result = "";
+            foreach(var time in times)
+            {
+                result += $"{time.Key}: {string.Join("\n", time.Value)}";
+            }
+            return result;
+        }
 
         public static string FindRouteDirections(string clientId, string routeName)
         {
@@ -78,8 +94,8 @@ namespace TrafficTimetable.Infrastructure
             var route = Parser.FindRouteNum(routeName);
             if (route == null) return "Мне не удалось найти такой маршрут, проверьте правильность введенного маршрута";
             var directions = Parser.GetRouteChoice(route);
-            GetClient(clientId).Directions = directions;
-            return $"Какое из направлений?\n 1. {directions.First().Value}\n 2.{directions.Last().Value}";
+            GetClient(clientId).BufferDirections = directions;
+            return $"Какое из направлений?\n 1. {directions.First().Key}\n 2.{directions.Last().Key}";
         }
     }
 }

@@ -7,6 +7,12 @@ namespace TrafficTimetable.Domain
 {
     public class ClientTag
     {
+        public ClientTag(string clientId, string tagName, string stopId)
+        {
+            ClientId = clientId;
+            TagName = tagName;
+            StopId = stopId;
+        }
         [Key]
         public string ClientId { get; set; }
 
