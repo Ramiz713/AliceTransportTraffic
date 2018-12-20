@@ -14,6 +14,11 @@ namespace TrafficTimetable
                 table.ClientId,
                 table.TagName
             });
+            builder.Entity<ClientState>().HasKey(table => new
+            {
+                table.ClientId,
+                table.SessionId
+            });
         }
 
         public DbSet<Client> Clients { get; set; }

@@ -24,6 +24,7 @@ namespace TrafficTimetable.Migrations
                 columns: table => new
                 {
                     ClientId = table.Column<string>(nullable: false),
+                    SessionId = table.Column<string>(nullable: false),
                     IsAddName = table.Column<bool>(nullable: false),
                     IsDefault = table.Column<bool>(nullable: false),
                     IsAddStop = table.Column<bool>(nullable: false),
@@ -37,7 +38,7 @@ namespace TrafficTimetable.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ClientStates", x => x.ClientId);
+                    table.PrimaryKey("PK_ClientStates", x => new { x.ClientId, x.SessionId });
                 });
 
             migrationBuilder.CreateTable(

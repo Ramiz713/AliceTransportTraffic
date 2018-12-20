@@ -9,14 +9,16 @@ namespace TrafficTimetable.Domain
 {
     public class ClientState
     {
-        public ClientState(string clientId)
+        public ClientState(string clientId, string sessionId)
         {
             ClientId = clientId;
-            IsAddName = true;
+            SessionId = sessionId;
         }
 
         [Key]
         public string ClientId { get; set; }
+        [Key]
+        public string SessionId { get; set; }
 
         public bool IsAddName { get; set; }
         public bool IsDefault { get; set; }

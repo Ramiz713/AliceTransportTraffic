@@ -11,22 +11,6 @@ namespace Alice
 {
     public class Alice : Controller
     {
-        private static string greeting = "Привет! Этот навык может быть полезен для быстрого получения информации о времени прибытия транспорта к остановке";
-        private static string firstMeeting = "! Кажется, я вас вижу, ой, слышу впервые... давайте знакомиться! Как вас зовут?";
-
-        private static List<string> tags = new List<string> { "дом", "работа", "учёба" };
-        private static Regex wordRegex = new Regex("[А-Я][а-яА-Я][^#&<>\"~;$^%{}?]{1,20}");
-        private static Regex helloRegex = new Regex("привет|хай|как делишки|даров|здарова", RegexOptions.IgnoreCase);
-        private static Regex stopRegex = new Regex("хочу добавить остановку", RegexOptions.IgnoreCase);
-        private static Regex numberRegex = new Regex(@"[\d]|[\d][\d]|[\d][\d][\D]");
-        private static Regex tagRegex = new Regex(@"дом|работ[а-я]|учёб[а-я]");
-
-        private static ButtonModel[] directionButtons = new ButtonModel[]
-        {
-            new ButtonModel() { Title = "1", Hide = true },
-            new ButtonModel() { Title = "2", Hide = true }
-        };
-
         static void Main(string[] args) => CreateWebHostBuilder(args).Build().Run();
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>

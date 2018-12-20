@@ -14,27 +14,41 @@ namespace TrafficTimetable.Infrastructure
     {
         public static void Main()
         {
+            using (ClientDataContext db = new ClientDataContext())
+            {
+                var clientStates = db.ClientStates;
+                foreach (var client in clientStates)
+                    Console.WriteLine(client.ClientId + client.IsAddName);
+            }
+            Console.ReadKey();
         }
 
-        public static ClientState GetClientState(string clientId)
+        public static ClientState CreateClientState(string clientId, string sessionId)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
-                return db.ClientStates.FirstOrDefault(c => c.ClientId == clientId);
+                var clientState = new ClientState(clientId, sessionId);
+                clientState.IsDefault = true;
+                db.ClientStates.Add(clientState);
+                db.SaveChanges();
+                return clientState;
             }
         }
 
-        public static string ChangeStateToAddNameAndAddClient(string clientId)
+        public static ClientState GetClientState(string clientId, string sessionId)
+        {
+            using (ClientDataContext db = new ClientDataContext())
+                return db.ClientStates
+                    .FirstOrDefault(c => c.ClientId == clientId && c.SessionId == sessionId);
+        }
+
+        public static string ChangeStateToAddNameAndAddClient(string clientId, string sessionId)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
                 db.Clients.Add(new Client(clientId));
-                var clientState = new ClientState(clientId)
-                {
-                    IsDefault = false,
-                    IsAddName = true
-                };
-                db.ClientStates.Add(clientState);
+                var clientState = CreateClientState(clientId, sessionId);
+                clientState.IsAddName = true;
                 db.SaveChanges();
             }
             return "! Кажется, я вас вижу, ой, слышу впервые... давайте знакомиться! Как вас зовут?";
@@ -109,9 +123,9 @@ namespace TrafficTimetable.Infrastructure
             }
         }
 
-        public static string AddStop(string clientId, string direction)
+        public static string AddStop(string clientId, string sessionId, string direction)
         {
-            var client = GetClientState(clientId);
+            var client = GetClientState(clientId, sessionId);
             var directionUrl = (direction == "1")
                 ? client.BufferDirections.First().Value
                 : client.BufferDirections.Last().Value;
@@ -130,7 +144,8 @@ namespace TrafficTimetable.Infrastructure
                 db.SaveChanges();
             }
             var times = Parser.GetTime(stop);
-            string result = "";
+            string result =  $"Я добавила эту остановку по тегу {client.BufferTagName}. " +
+                $"А вот и заодно время:\n";
             foreach (var time in times)
             {
                 result += $"{time.Key}: {string.Join("\n", time.Value)}";
