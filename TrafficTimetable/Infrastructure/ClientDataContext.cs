@@ -22,7 +22,7 @@ namespace TrafficTimetable
 
         public DbSet<ClientTag> ClientTags { get; set; }
 
-        public DbSet<State> States { get; set; }
+        public DbSet<ClientState> ClientStates { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

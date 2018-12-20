@@ -7,6 +7,9 @@ namespace TrafficTimetable.Infrastructure
 {
     public static class Handler
     {
+        private static string greeting = "Привет! Этот навык может быть полезен для быстрого получения информации о времени прибытия транспорта к остановке";
+        private static string firstMeeting = "! Кажется, я вас вижу, ой, слышу впервые... давайте знакомиться! Как вас зовут?";
+
         private static List<string> tags = new List<string> { "дом", "работа", "учёба" };
         private static Regex wordRegex = new Regex("[А-Я][а-яА-Я][^#&<>\"~;$^%{}?]{1,20}");
         private static Regex helloRegex = new Regex("привет|хай|как делишки|даров|здарова", RegexOptions.IgnoreCase);
@@ -14,34 +17,39 @@ namespace TrafficTimetable.Infrastructure
         private static Regex numberRegex = new Regex(@"[\d]|[\d][\d]|[\d][\d][\D]");
         private static Regex tagRegex = new Regex(@"дом|работ[а-я]|учёб[а-я]");
 
-        public static string Handle(string clientId, string sessionId, string command)
+
+        public static Tuple<string, string[]> Handle(string _clientId, string _sessionId, string _command)
         {
-            if (command == "1" || command == "2")
-                return Repository.AddStop(clientId, command);
+            var command = _command;
+            var clientId = _clientId;
+            var clientState = Repository.GetClientState(clientId);
             if (helloRegex.Match(command).Success)
-                return $"Привет{FindClient(clientId)}";
-            if (tagRegex.Match(command).Success)
+                return Tuple.Create($"Привет{FindClient(clientId)}", new string[0]);
+            if (clientState.IsAddName)
+                return Tuple.Create(Repository.AddClientName(clientId, command), new string[0]);
+
+            if (clientState.IsAddStop)
+                return Tuple.Create(Repository.AddBufferStop(clientId, command), new string[0]);
+
+            if (clientState.IsAddTag)
             {
                 var tag = tagRegex.Match(command).Value;
-                return Repository.AddBufferTag(clientId, tag);
+                return Tuple.Create(Repository.AddBufferTag(clientId, tag), new string[0]);
             }
+
+            if (clientState.IsAddRoute)
+                return Tuple.Create(Repository.FindRouteDirections(clientId, command), 
+                    new string[2] { "1", "2" });
+
+            if (clientState.IsChoosingDirection)
+                return (command != "1" && command != "2")
+                    ? Tuple.Create("Пожалуйста, выберите между 1 или 2", new string[2] { "1", "2" })
+                    : Tuple.Create(Repository.AddStop(clientId, command), new string[0]);
+
             if (stopRegex.Match(command).Success)
-                return "Назовите название остановки";
-            if (wordRegex.Match(command).Success)
-            {
-                if (Repository.IsClientExist(clientId))
-                    return Repository.AddBufferStop(clientId, command);
-                else
-                    return Repository.AddClient(clientId, command);
-            }
-            if (numberRegex.Match(command).Success)
-                return req.Reply(Repository.FindRouteDirections(clientId, command),
-                    buttons: new ButtonModel[]
-                    {
-                    new ButtonModel() { Title = "1", Hide = true },
-                    new ButtonModel() { Title = "2", Hide = true }
-                    });
-            return req.Reply("Ничего");
+                return Tuple.Create(Repository.ChangeStateToAddStop(clientId), new string[0]);
+
+            return Tuple.Create("Ничего", new string[0]);
         }
 
         private static string FindClient(string clientId)

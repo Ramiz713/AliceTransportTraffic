@@ -77,11 +77,12 @@ namespace TrafficTimetable.Infrastructure
 
         public static string GetStop(string url, string stop)
         {
+            var regex = new Regex(stop, RegexOptions.IgnoreCase);
             var document = ParseUrl(url);
             var data = document
                 .QuerySelectorAll("a")
                 .OfType<IHtmlAnchorElement>()
-                .Where(x => x.TextContent == stop);
+                .Where(x => regex.Match(x.TextContent).Success);
             return linkPattern + data.First().Href.Remove(0, 9);
         }
     }
