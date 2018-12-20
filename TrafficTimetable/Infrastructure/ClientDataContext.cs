@@ -2,12 +2,25 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TrafficTimetable.Domain;
 
 namespace TrafficTimetable
 {
     public class ClientDataContext : DbContext
     {
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.Entity<ClientTag>().HasKey(table => new {
+                table.ClientId,
+                table.TagName
+            });
+        }
+
         public DbSet<Client> Clients { get; set; }
+
+        public DbSet<Stop> Stops { get; set; }
+
+        public DbSet<ClientTag> ClientTags { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

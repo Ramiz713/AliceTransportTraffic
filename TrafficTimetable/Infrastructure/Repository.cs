@@ -15,63 +15,71 @@ namespace TrafficTimetable.Infrastructure
         {
             using (ClientDataContext db = new ClientDataContext())
             {
-                var clients = db.Clients.ToList();
+                var clients = db.Clients;
                 foreach (var client in clients)
                     Console.WriteLine(client.Id);
             }
             Console.ReadKey();
         }
-        public static string AddBusStop(string busStop, string clientId)
+
+        public static string AddClient(string clientId, string name)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
-                var clients = db.Clients.ToList().Where(c => c.Id == clientId);
-                Client client;
-                if (clients.Count() == 0)
-                {
-                    client = new Client { Id = clientId, BusStops = new List<string>() };
-                    db.Clients.Add(client);
-                }
-                else client = clients.First();
-                client.BusStops.Add(busStop);
+                db.Clients.Add(new Client(clientId, name));
                 db.SaveChanges();
-                return "Added";
             }
+            return "Отлично, рада знакомству!";
         }
 
-        public static string ClearBusStops(string clientId)
+        private static Client GetClient(string clientId)
         {
             using (ClientDataContext db = new ClientDataContext())
-            {
-                var clients = db.Clients.ToList().Where(c => c.Id == clientId);
-                Client client;
-                if (clients.Count() == 0)
-                {
-                    return "You haven't bus stops";
-                }
-                else client = clients.First();
-                client.BusStops.Clear();
-                db.SaveChanges();
-                return "Cleared";
-            }
+                return db.Clients.FirstOrDefault(cl => cl.Id == clientId);
         }
 
-        public static string ShowClientBusStops(string clientId)
+        public static string GetClientName(string clientId) =>
+            GetClient(clientId)?.Name;
+
+        public static bool IsClientExist(string clientId)
         {
             using (ClientDataContext db = new ClientDataContext())
-            {
-                var clients = db.Clients.ToList().Where(c => c.Id == clientId);
-                return (clients.Count() == 0)
-                    ? "Empty. Client didn't add any bus stop"
-                    : string.Join("\n", clients.First().BusStops);
-            }
+                return db.Clients.FirstOrDefault(cl => cl.Id == clientId) != null;
         }
-        public static string FindBusCountOnRoute(string busRoute)
+
+        public static string AddBufferStop(string clientId, string stopName)
         {
-            WebClient wc = new WebClient();
-            var json = wc.DownloadString(@"http://data.kzn.ru:8082/api/v0/dynamic_datasets/bus.json");
-            var buses = JsonConvert.DeserializeObject<List<BusTime>>(json);
-            return buses.Where(bus => bus.Bus.Route == busRoute).Count().ToString();
+            var client = GetClient(clientId);
+            client.BufferStopName = stopName;
+            return "Назовите тэг, который хотите привязать к этой остановке";
+        }
+
+        public static string AddBufferTag(string clientId, string tagName)
+        {
+            var client = GetClient(clientId);
+            client.BufferTagName = tagName;
+            return "Назовите маршрут, время прибытия которого хотите узнать";
+        }
+
+        //public static string AddStop(string clientId, string direction)
+        //{
+        //    var client = GetClient(clientId);
+        //    var directionUrl = (direction == "1")
+        //        ? client.Directions.First().Key
+        //        : client.Directions.Last().Key;
+        //    var stopLink = Parser.GetStop(directionUrl, client.BufferStopName);
+        //    var time = Parser.GetTime(stopLink)
+        //}
+
+        public static string FindRouteDirections(string clientId, string routeName)
+        {
+            var client = GetClient(clientId);
+            client.BufferRouteName = routeName;
+            var route = Parser.FindRouteNum(routeName);
+            if (route == null) return "Мне не удалось найти такой маршрут, проверьте правильность введенного маршрута";
+            var directions = Parser.GetRouteChoice(route);
+            GetClient(clientId).Directions = directions;
+            return $"Какое из направлений?\n 1. {directions.First().Value}\n 2.{directions.Last().Value}";
         }
     }
 }
