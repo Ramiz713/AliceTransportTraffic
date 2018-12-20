@@ -17,9 +17,7 @@ namespace TrafficTimetable.Infrastructure
             var parser = new HtmlParser();
             string htmlCode;
             using (WebClient wb = new WebClient())
-            {
                 htmlCode = wb.DownloadString(url);
-            }
             var document = parser.Parse(htmlCode);
             return document;
         }
@@ -56,10 +54,7 @@ namespace TrafficTimetable.Infrastructure
                 .OfType<IHtmlAnchorElement>()
                 .ToList();
             try { return linkPattern + routeData.Last().Href.Remove(0, 9); }
-            catch
-            {
-                return null;
-            }
+            catch { return null; }
         }
 
         public static Dictionary<string, string> GetRouteChoice(string url)

@@ -10,7 +10,7 @@ using TrafficTimetable;
 namespace TrafficTimetable.Migrations
 {
     [DbContext(typeof(ClientDataContext))]
-    [Migration("20181220161608_Initial")]
+    [Migration("20181220170117_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

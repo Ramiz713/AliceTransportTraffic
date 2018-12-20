@@ -14,15 +14,6 @@ namespace TrafficTimetable.Infrastructure
     {
         public static void Main()
         {
-            using (ClientDataContext db = new ClientDataContext())
-            {
-                var cl = new ClientState("1");
-                db.ClientStates.Add(cl);
-                db.SaveChanges();
-                //foreach (var client in db.ClientStates)
-                //    Console.WriteLine(client.ClientId);
-            }
-            //Console.ReadKey();
         }
 
         public static ClientState GetClientState(string clientId)

@@ -38,7 +38,7 @@ namespace TrafficTimetable.Infrastructure
             }
 
             if (clientState.IsAddRoute)
-                return Tuple.Create(Repository.FindRouteDirections(clientId, command), 
+                return Tuple.Create(Repository.FindRouteDirections(clientId, command),
                     new string[2] { "1", "2" });
 
             if (clientState.IsChoosingDirection)
@@ -55,9 +55,9 @@ namespace TrafficTimetable.Infrastructure
         private static string FindClient(string clientId)
         {
             var clientName = Repository.GetClientName(clientId);
-            return (clientName == null)
-                ? "! Кажется, я вас вижу, ой, слышу впервые... давайте знакомиться! Как вас зовут?"
-                : $", {clientName}!";
+            if (clientName == null)
+                return Repository.ChangeStateToAddNameAndAddClient(clientId);
+            return $", {clientName}!";
         }
     }
 }
