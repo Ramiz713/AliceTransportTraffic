@@ -10,7 +10,7 @@ using TrafficTimetable;
 namespace TrafficTimetable.Migrations
 {
     [DbContext(typeof(ClientDataContext))]
-    [Migration("20181206083138_Initial")]
+    [Migration("20181219185107_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -26,11 +26,40 @@ namespace TrafficTimetable.Migrations
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<List<string>>("BusStops");
+                    b.Property<string>("Name");
 
                     b.HasKey("Id");
 
                     b.ToTable("Clients");
+                });
+
+            modelBuilder.Entity("TrafficTimetable.Domain.ClientTag", b =>
+                {
+                    b.Property<string>("ClientId");
+
+                    b.Property<string>("TagName");
+
+                    b.Property<string>("StopId");
+
+                    b.HasKey("ClientId", "TagName");
+
+                    b.ToTable("ClientTags");
+                });
+
+            modelBuilder.Entity("TrafficTimetable.Domain.Stop", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Name");
+
+                    b.Property<List<string>>("Routes");
+
+                    b.Property<string>("Url");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Stops");
                 });
 #pragma warning restore 612, 618
         }
