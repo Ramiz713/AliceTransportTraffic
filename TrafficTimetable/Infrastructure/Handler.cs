@@ -22,12 +22,14 @@ namespace TrafficTimetable.Infrastructure
         {
             var clientState = Repository.GetClientState(clientId, sessionId);
 
-            if (helloRegex.Match(command).Success)
-                return Tuple.Create($"Привет{FindClient(clientId, sessionId)}", new string[0]);
             if (clientState == null)
                 clientState = Repository.CreateClientState(clientId, sessionId);
+
+            if (helloRegex.Match(command).Success)
+                return Tuple.Create($"Привет{FindClient(clientId, sessionId)}", new string[0]);
+
             if (clientState.IsAddName)
-                return Tuple.Create(Repository.AddClientName(clientId, command), new string[0]);
+                return Tuple.Create(Repository.AddClientName(clientId, sessionId, command), new string[0]);
 
             if (clientState.IsAddStop)
                 return Tuple.Create(Repository.AddBufferStop(clientId, command), new string[0]);
@@ -48,7 +50,7 @@ namespace TrafficTimetable.Infrastructure
                     : Tuple.Create(Repository.AddStop(clientId, sessionId, command), new string[0]);
 
             if (stopRegex.Match(command).Success)
-                return Tuple.Create(Repository.ChangeStateToAddStop(clientId), new string[0]);
+                return Tuple.Create(Repository.ChangeStateToAddStop(clientId, sessionId), new string[0]);
 
             return Tuple.Create("Ничего", new string[0]);
         }
