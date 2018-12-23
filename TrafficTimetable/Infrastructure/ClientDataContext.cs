@@ -14,11 +14,6 @@ namespace TrafficTimetable
                 table.ClientId,
                 table.TagName
             });
-            builder.Entity<ClientState>().HasKey(table => new
-            {
-                table.ClientId,
-                table.SessionId
-            });
         }
 
         public DbSet<Client> Clients { get; set; }
@@ -31,7 +26,7 @@ namespace TrafficTimetable
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql("Host=ec2-46-51-184-229.eu-west-1.compute.amazonaws.com;Port=5432;Database=d1acbcpbs7vprr;Username=pckoawqkmnqabb;Password=0573b23c5c6d1d2c26d198862455c2576417f1fcac1a42a0c17188b1a7269bc5;SslMode=Require;Trust Server Certificate=true");
+            optionsBuilder.UseNpgsql("Host=ec2-46-137-99-175.eu-west-1.compute.amazonaws.com;Port=5432;Database=d7mrml4jq1k4ln;Username=yqjapbavfngqnj;Password=0e023237c26b52c5b9eccf5b8fa87e9d1d0e268a1caa3b730908b4d19113e80e; SslMode=Require;Trust Server Certificate=true");
         }
     }
 }

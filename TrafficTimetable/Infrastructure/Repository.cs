@@ -18,7 +18,7 @@ namespace TrafficTimetable.Infrastructure
             {
                 var clientStates = db.ClientStates;
                 foreach (var client in clientStates)
-                    Console.WriteLine(client.ClientId + client.IsAddName);
+                    Console.WriteLine(client.ClientId);
             }
             Console.ReadKey();
         }
@@ -27,69 +27,87 @@ namespace TrafficTimetable.Infrastructure
         //{
         //    using (ClientDataContext db = new ClientDataContext())
         //    {
-        //        var clientTags = db.ClientTags.Where(c => c.ClientId == clientId);
+        //        var clientTags = db.ClientTags.Where(c => c.ClientId == clientId); cl
+        //        var result = from cl in clientTags
+        //                     join
         //    }
         //}
 
-        public static ClientState CreateClientState(string clientId, string sessionId)
+        public static ClientState CreateClientAndState(string clientId, string sessionId)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
                 var clientState = new ClientState(clientId, sessionId);
-                clientState.IsDefault = true;
                 db.ClientStates.Add(clientState);
+                db.Clients.Add(new Client(clientId));
                 db.SaveChanges();
                 return clientState;
             }
         }
 
-        public static ClientState GetClientState(string clientId, string sessionId)
+        public static ClientState GetClientState(string clientId)
         {
             using (ClientDataContext db = new ClientDataContext())
                 return db.ClientStates
-                    .FirstOrDefault(c => c.ClientId == clientId && c.SessionId == sessionId);
+                    .FirstOrDefault(c => c.ClientId == clientId);
         }
 
-        public static string ChangeStateToAddNameAndAddClient(string clientId, string sessionId)
+        public static string GetMessageInWhichStateUser(string clientId, string sessionId)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
-                db.Clients.Add(new Client(clientId));
-                var clientState = db.ClientStates
-                    .FirstOrDefault(c => c.ClientId == clientId && c.SessionId == sessionId);
-                clientState.IsDefault = false;
-                clientState.IsAddName = true;
+                var clientState = GetClientState(clientId);
+                clientState.SessionId = sessionId;
+                clientState.WaitingToContinue = true;
+                db.ClientStates.Update(clientState);
                 db.SaveChanges();
+                return clientState.GetStateInfo();
             }
-            return "! Кажется, я вас вижу, ой, слышу впервые... давайте знакомиться! Как вас зовут?";
         }
 
-        public static string ChangeStateToAddStop(string clientId, string sessionId)
+        public static string ContinueWorkOrChangeToDefaultState(string clientId, bool flag)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
-                var clientState = db.ClientStates
-                    .FirstOrDefault(c => c.ClientId == clientId && c.SessionId == sessionId);
-                clientState.IsDefault = false;
-                clientState.IsAddStop = true;
+                var clientState = GetClientState(clientId);
+                var response = clientState.GetInstruction();
+                if (!flag)
+                {
+                    clientState.ClientStatus = Status.Default;
+
+                    response = @"Хорошо, как говорится, забудем ""старое"")";
+                }
+                clientState.WaitingToContinue = false;
+                db.ClientStates.Update(clientState);
                 db.SaveChanges();
+                return response;
             }
-            return "Назовите название остановки";
         }
 
-        public static string AddClientName(string clientId, string sessionId, string name)
+        public static string ChangeStateToAddingName(string clientId)
+        {
+            using (ClientDataContext db = new ClientDataContext())
+            {
+                var clientState = GetClientState(clientId);
+                clientState.ClientStatus = Status.AddingName;
+                db.ClientStates.Update(clientState);
+                db.SaveChanges();
+                return clientState.GetInstruction();
+            }
+        }
+
+        public static string AddClientName(string clientId, string name)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
                 var client = db.Clients.FirstOrDefault(c => c.Id == clientId);
                 client.Name = name;
                 var clientState = db.ClientStates
-                    .FirstOrDefault(c => c.ClientId == clientId && c.SessionId == sessionId);
-                clientState.IsAddName = false;
-                clientState.IsDefault = true;
+                    .FirstOrDefault(c => c.ClientId == clientId);
+                clientState.ClientStatus = Status.Default;
                 db.SaveChanges();
+                return "Отлично, рада знакомству!";
             }
-            return "Отлично, рада знакомству!";
         }
 
         public static string GetClientName(string clientId)
@@ -98,22 +116,28 @@ namespace TrafficTimetable.Infrastructure
                 return db.Clients.FirstOrDefault(cl => cl.Id == clientId)?.Name;
         }
 
-        public static bool IsClientExist(string clientId)
+        public static string ChangeStateToAddStop(string clientId, string sessionId)
         {
             using (ClientDataContext db = new ClientDataContext())
-                return db.Clients.FirstOrDefault(cl => cl.Id == clientId) != null;
+            {
+                var clientState = GetClientState(clientId);
+                clientState.ClientStatus = Status.AddingStop;
+                db.ClientStates.Update(clientState);
+                db.SaveChanges();
+                return clientState.GetInstruction();
+            }
         }
 
         public static string AddBufferStop(string clientId, string stopName)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
-                var clientState = db.ClientStates.FirstOrDefault(c => c.ClientId == clientId);
-                clientState.IsAddStop = false;
-                clientState.IsAddTag = true;
+                var clientState = GetClientState(clientId);
                 clientState.BufferStopName = stopName;
+                clientState.ClientStatus = Status.AddingTag;
+                db.ClientStates.Update(clientState);
                 db.SaveChanges();
-                return "Назовите тег, который хотите привязать к этой остановке";
+                return clientState.GetInstruction();
             }
         }
 
@@ -121,43 +145,13 @@ namespace TrafficTimetable.Infrastructure
         {
             using (ClientDataContext db = new ClientDataContext())
             {
-                var clientState = db.ClientStates.FirstOrDefault(c => c.ClientId == clientId);
-                clientState.IsAddTag = false;
-                clientState.IsAddRoute = true;
+                var clientState = GetClientState(clientId);
                 clientState.BufferTagName = tagName;
+                clientState.ClientStatus = Status.AddingRoute;
+                db.ClientStates.Update(clientState);
                 db.SaveChanges();
-                return "Назовите маршрут, время прибытия которого хотите узнать";
+                return clientState.GetInstruction();
             }
-        }
-
-        public static string AddStop(string clientId, string sessionId, string direction)
-        {
-            var client = GetClientState(clientId, sessionId);
-            var directionUrl = (direction == "1")
-                ? client.BufferDirections.First().Value
-                : client.BufferDirections.Last().Value;
-            var stopLink = Parser.GetStop(directionUrl, client.BufferStopName);
-            var stopUri = new Uri(stopLink);
-            var stopId = HttpUtility.ParseQueryString(stopUri.Query).Get("st_id");
-            var stop = new Stop(stopId, client.BufferStopName, stopLink);
-            stop.Routes.Add(client.BufferRouteName);
-            using (ClientDataContext db = new ClientDataContext())
-            {
-                var clientState = db.ClientStates.FirstOrDefault(c => c.ClientId == clientId);
-                if (!db.Stops.Contains(stop))
-                    db.Stops.Add(stop);
-                db.ClientTags.Add(new ClientTag(clientId, client.BufferTagName, stopId));
-                clientState.ResetClientState();
-                db.SaveChanges();
-            }
-            var times = Parser.GetTime(stop);
-            string result = $"Я добавила эту остановку по тегу {client.BufferTagName}. " +
-                $"А вот и заодно время:\n";
-            foreach (var time in times)
-            {
-                result += $"{time.Key}: {string.Join("\n", time.Value)}";
-            }
-            return result;
         }
 
         public static string FindRouteDirections(string clientId, string routeName)
@@ -167,14 +161,43 @@ namespace TrafficTimetable.Infrastructure
             var directions = Parser.GetRouteChoice(route);
             using (ClientDataContext db = new ClientDataContext())
             {
-                var clientState = db.ClientStates.FirstOrDefault(c => c.ClientId == clientId);
-                clientState.IsAddRoute = false;
-                clientState.IsChoosingDirection = true;
+                var clientState = GetClientState(clientId);
+                clientState.ClientStatus = Status.ChoosingDirection;
                 clientState.BufferRouteName = routeName;
                 clientState.BufferDirections = directions;
+                db.ClientStates.Update(clientState);
+                db.SaveChanges();
+                return clientState.GetInstruction();
+            }
+        }
+
+        public static string AddStop(string clientId, string sessionId, string direction)
+        {
+            var client = GetClientState(clientId);
+            var directionUrl = (direction == "1" || direction == "первое")
+                ? client.BufferDirections.First().Value
+                : client.BufferDirections.Last().Value;
+            var stopLink = Parser.GetStop(directionUrl, client.BufferStopName);
+            var stopUri = new Uri(stopLink);
+            var stopId = HttpUtility.ParseQueryString(stopUri.Query).Get("st_id");
+            var stop = new Stop(stopId, client.BufferStopName, stopLink);
+            stop.Routes.Add(client.BufferRouteName);
+            using (ClientDataContext db = new ClientDataContext())
+            {
+                var clientState = GetClientState(clientId);
+                if (!db.Stops.Contains(stop))
+                    db.Stops.Add(stop);
+                db.ClientTags.Add(new ClientTag(clientId, client.BufferTagName, stopId));
+                clientState.ClientStatus = Status.Default;
+                db.ClientStates.Update(clientState);
                 db.SaveChanges();
             }
-            return $"Какое из направлений?\n 1. {directions.First().Key}\n 2.{directions.Last().Key}";
+            var times = Parser.GetTime(stop);
+            string result = $"Я добавила эту остановку по тегу {client.BufferTagName}. " +
+                $"А вот и заодно время:\n";
+            foreach (var time in times)
+                result += $"{time.Key}: {string.Join("\n", time.Value)}";
+            return result;
         }
     }
 }

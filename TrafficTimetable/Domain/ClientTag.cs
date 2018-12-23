@@ -14,7 +14,7 @@ namespace TrafficTimetable.Domain
             StopId = stopId;
         }
         [Key]
-        public string ClientId { get; set; }
+        public string ClientId { get; private set; }
 
         [Key]
         public string TagName { get; set; }

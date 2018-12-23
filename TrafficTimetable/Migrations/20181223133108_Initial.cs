@@ -24,21 +24,18 @@ namespace TrafficTimetable.Migrations
                 columns: table => new
                 {
                     ClientId = table.Column<string>(nullable: false),
-                    SessionId = table.Column<string>(nullable: false),
-                    IsAddName = table.Column<bool>(nullable: false),
-                    IsDefault = table.Column<bool>(nullable: false),
-                    IsAddStop = table.Column<bool>(nullable: false),
-                    IsAddRoute = table.Column<bool>(nullable: false),
-                    IsAddTag = table.Column<bool>(nullable: false),
-                    IsChoosingDirection = table.Column<bool>(nullable: false),
+                    SessionId = table.Column<string>(nullable: true),
+                    ClientStatus = table.Column<int>(nullable: false),
+                    WaitingToContinue = table.Column<bool>(nullable: false),
                     BufferDirection = table.Column<string>(nullable: true),
                     BufferStopName = table.Column<string>(nullable: true),
                     BufferRouteName = table.Column<string>(nullable: true),
-                    BufferTagName = table.Column<string>(nullable: true)
+                    BufferTagName = table.Column<string>(nullable: true),
+                    BufferTransportType = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ClientStates", x => new { x.ClientId, x.SessionId });
+                    table.PrimaryKey("PK_ClientStates", x => x.ClientId);
                 });
 
             migrationBuilder.CreateTable(

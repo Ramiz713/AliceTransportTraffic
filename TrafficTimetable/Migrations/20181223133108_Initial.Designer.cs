@@ -10,7 +10,7 @@ using TrafficTimetable;
 namespace TrafficTimetable.Migrations
 {
     [DbContext(typeof(ClientDataContext))]
-    [Migration("20181220193958_Initial")]
+    [Migration("20181223133108_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,9 +35,8 @@ namespace TrafficTimetable.Migrations
 
             modelBuilder.Entity("TrafficTimetable.Domain.ClientState", b =>
                 {
-                    b.Property<string>("ClientId");
-
-                    b.Property<string>("SessionId");
+                    b.Property<string>("ClientId")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("BufferDirection");
 
@@ -47,19 +46,15 @@ namespace TrafficTimetable.Migrations
 
                     b.Property<string>("BufferTagName");
 
-                    b.Property<bool>("IsAddName");
+                    b.Property<string>("BufferTransportType");
 
-                    b.Property<bool>("IsAddRoute");
+                    b.Property<int>("ClientStatus");
 
-                    b.Property<bool>("IsAddStop");
+                    b.Property<string>("SessionId");
 
-                    b.Property<bool>("IsAddTag");
+                    b.Property<bool>("WaitingToContinue");
 
-                    b.Property<bool>("IsChoosingDirection");
-
-                    b.Property<bool>("IsDefault");
-
-                    b.HasKey("ClientId", "SessionId");
+                    b.HasKey("ClientId");
 
                     b.ToTable("ClientStates");
                 });

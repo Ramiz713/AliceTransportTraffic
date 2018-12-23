@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
+using System.Linq;
+
 
 namespace TrafficTimetable.Domain
 {
@@ -13,37 +14,59 @@ namespace TrafficTimetable.Domain
         {
             ClientId = clientId;
             SessionId = sessionId;
+            ClientStatus = Status.Default;
+            BufferTransportType = "автобуса";
         }
 
         [Key]
         public string ClientId { get; set; }
-        [Key]
+
         public string SessionId { get; set; }
 
-        public bool IsAddName { get; set; }
-        public bool IsDefault { get; set; }
-        public bool IsAddStop { get; set; }
-        public bool IsAddRoute { get; set; }
-        public bool IsAddTag { get; set; }
-        public bool IsChoosingDirection { get; set; }
+        public Status ClientStatus { get; set; }
+        public bool WaitingToContinue { get; set; }
         public string BufferDirection { get; set; }
         public string BufferStopName { get; set; }
         public string BufferRouteName { get; set; }
         public string BufferTagName { get; set; }
+        public string BufferTransportType { get; set; }
 
-        public void ResetClientState()
+        public string GetStateInfo()
         {
-            IsDefault = true;
-            IsChoosingDirection = false;
-            IsAddTag = false;
-            IsAddName = false;
-            IsAddStop = false;
-            IsAddRoute = false;
-            BufferDirection = null;
-            BufferStopName = null;
-            BufferRouteName = null;
-            BufferTagName = null;
-            BufferDirections = null;
+            switch (ClientStatus)
+            {
+                case Status.AddingName:
+                    return "хотели сообщить мне своё имя.";
+                case Status.AddingStop:
+                    return "хотели назвать мне название остановки.";
+                case Status.AddingTag:
+                    return $"хотели назвать тег для остановки {BufferStopName}, которую вы добавляли.";
+                case Status.AddingRoute:
+                    return $"хотели добавить маршрут к названной вами остановке {BufferStopName}.";
+                case Status.ChoosingDirection:
+                    return $"хотели выбрать направление маршрута {BufferRouteName} {BufferTransportType} у остановки {BufferStopName}.";
+                default:
+                    return null;
+            }
+        }
+
+        public string GetInstruction()
+        {
+            switch (ClientStatus)
+            {
+                case Status.AddingName:
+                    return "! Кажется, я вас вижу, ой, слышу впервые... давайте знакомиться! Как вас зовут?";
+                case Status.AddingStop:
+                    return "Назовите название остановки";
+                case Status.AddingTag:
+                    return "Назовите тег, который хотите привязать к этой остановке";
+                case Status.AddingRoute:
+                    return "Назовите маршрут, время прибытия которого хотите узнать";
+                case Status.ChoosingDirection:
+                    return $"Какое из направлений?\n 1. {BufferDirections.First().Key}\n 2.{BufferDirections.Last().Key}";
+                default:
+                    return null;
+            }
         }
 
         [NotMapped]
