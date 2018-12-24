@@ -12,26 +12,33 @@ namespace TrafficTimetable.Infrastructure
 {
     internal static class Repository
     {
-        public static void Main()
+        public static void Main() { }
+
+        private static List<string> nicknames = new List<string> { "Кабанчик", "Хитрый татарин", "Рыночный клуб",
+            "Первичный череп", "Философский женя","Сложный пришелец" };
+
+        public static string ShowSavedStops(string clientId)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
-                var clientStates = db.ClientStates;
-                foreach (var client in clientStates)
-                    Console.WriteLine(client.ClientId);
+                var clientStops = db.ClientTags.Where(c => c.ClientId == clientId)
+                    .Join(db.Stops, tag => tag.StopId, stop => stop.Id,
+                    (tag, stop) => new { tag.TagName, stop.Name, stop.Routes });
+                StringBuilder result = new StringBuilder().Append("Все ваши сохраненные остановки:\n");
+                foreach (var stop in clientStops)
+                    result
+                        .Append("Остановка: ")
+                        .Append(stop.Name)
+                        .Append("\n")
+                        .Append("Тег остановки: ")
+                        .Append(stop.TagName)
+                        .Append("\n")
+                        .Append("Маршруты: ")
+                        .Append(string.Join(", ", stop.Routes))
+                        .Append("\n\n");
+                return result.ToString();
             }
-            Console.ReadKey();
         }
-
-        //public static string ShowSavedStops(string clientId)
-        //{
-        //    using (ClientDataContext db = new ClientDataContext())
-        //    {
-        //        var clientTags = db.ClientTags.Where(c => c.ClientId == clientId); cl
-        //        var result = from cl in clientTags
-        //                     join
-        //    }
-        //}
 
         public static ClientState CreateClientAndState(string clientId, string sessionId)
         {
@@ -52,13 +59,13 @@ namespace TrafficTimetable.Infrastructure
                     .FirstOrDefault(c => c.ClientId == clientId);
         }
 
-        public static string GetMessageInWhichStateUser(string clientId, string sessionId)
+        public static string GetMessageInWhichStateUser(string clientId, string newSessionId)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
                 var clientState = GetClientState(clientId);
-                clientState.SessionId = sessionId;
-                clientState.WaitingToContinue = true;
+                clientState.SessionId = newSessionId;
+                if (clientState.ClientStatus != Status.Default) clientState.WaitingToContinue = true;
                 db.ClientStates.Update(clientState);
                 db.SaveChanges();
                 return clientState.GetStateInfo();
@@ -96,6 +103,21 @@ namespace TrafficTimetable.Infrastructure
             }
         }
 
+        public static string AutoGenerateClientName(string clientId)
+        {
+            using (ClientDataContext db = new ClientDataContext())
+            {
+                var client = db.Clients.FirstOrDefault(c => c.Id == clientId);
+                var rnd = new Random();
+                client.Name = nicknames[rnd.Next(0, nicknames.Count - 1)];
+                var clientState = db.ClientStates
+                    .FirstOrDefault(c => c.ClientId == clientId);
+                clientState.ClientStatus = Status.Default;
+                db.SaveChanges();
+                return $"Понимаю, вам неловко говорить своё имя...но все же я буду вас называть {client.Name}!)";
+            }
+        }
+
         public static string AddClientName(string clientId, string name)
         {
             using (ClientDataContext db = new ClientDataContext())
@@ -116,7 +138,7 @@ namespace TrafficTimetable.Infrastructure
                 return db.Clients.FirstOrDefault(cl => cl.Id == clientId)?.Name;
         }
 
-        public static string ChangeStateToAddStop(string clientId, string sessionId)
+        public static string ChangeStateToAddStop(string clientId)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
@@ -171,7 +193,7 @@ namespace TrafficTimetable.Infrastructure
             }
         }
 
-        public static string AddStop(string clientId, string sessionId, string direction)
+        public static string AddStop(string clientId, string direction)
         {
             var client = GetClientState(clientId);
             var directionUrl = (direction == "1" || direction == "первое")
@@ -192,12 +214,30 @@ namespace TrafficTimetable.Infrastructure
                 db.ClientStates.Update(clientState);
                 db.SaveChanges();
             }
-            var times = Parser.GetTime(stop);
+            var timeIntervals = Parser.GetTime(stop);
             string result = $"Я добавила эту остановку по тегу {client.BufferTagName}. " +
                 $"А вот и заодно время:\n";
-            foreach (var time in times)
+            foreach (var time in timeIntervals)
                 result += $"{time.Key}: {string.Join("\n", time.Value)}";
             return result;
+        }
+
+        public static string GetTimeByTag(string clientId, string tag)
+        {
+            using (ClientDataContext db = new ClientDataContext())
+            {
+                var stopId = db.ClientTags
+                    .Where(c => c.ClientId == clientId)
+                    .Where(c => c.TagName.Contains(tag))
+                    .FirstOrDefault()?.StopId;
+                if (stopId == null) return "Не удалось найти остановку по такому тегу";
+                var stop = db.Stops.Where(s => s.Id == stopId).FirstOrDefault();
+                var result = "Вот ваше время:\n";
+                var timeIntervals = Parser.GetTime(stop);
+                foreach (var time in timeIntervals)
+                    result += $"{time.Key}: {string.Join("\n  ", time.Value)}\n";
+                return result;
+            }
         }
     }
 }

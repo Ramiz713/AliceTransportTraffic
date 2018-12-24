@@ -33,8 +33,7 @@ namespace TrafficTimetable.Migrations
 
             modelBuilder.Entity("TrafficTimetable.Domain.ClientState", b =>
                 {
-                    b.Property<string>("ClientId")
-                        .ValueGeneratedOnAdd();
+                    b.Property<string>("ClientId");
 
                     b.Property<string>("BufferDirection");
 
@@ -54,6 +53,8 @@ namespace TrafficTimetable.Migrations
 
                     b.HasKey("ClientId");
 
+                    b.HasIndex("ClientId");
+
                     b.ToTable("ClientStates");
                 });
 
@@ -66,6 +67,10 @@ namespace TrafficTimetable.Migrations
                     b.Property<string>("StopId");
 
                     b.HasKey("ClientId", "TagName");
+
+                    b.HasIndex("StopId");
+
+                    b.HasIndex("ClientId", "TagName");
 
                     b.ToTable("ClientTags");
                 });
@@ -84,6 +89,26 @@ namespace TrafficTimetable.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Stops");
+                });
+
+            modelBuilder.Entity("TrafficTimetable.Domain.ClientState", b =>
+                {
+                    b.HasOne("TrafficTimetable.Domain.Client", "Client")
+                        .WithOne("State")
+                        .HasForeignKey("TrafficTimetable.Domain.ClientState", "ClientId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("TrafficTimetable.Domain.ClientTag", b =>
+                {
+                    b.HasOne("TrafficTimetable.Domain.Client", "Client")
+                        .WithMany("Tags")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("TrafficTimetable.Domain.Stop", "Stop")
+                        .WithMany("Tags")
+                        .HasForeignKey("StopId");
                 });
 #pragma warning restore 612, 618
         }

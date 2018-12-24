@@ -13,11 +13,13 @@ namespace TrafficTimetable.Domain
             TagName = tagName;
             StopId = stopId;
         }
-        [Key]
         public string ClientId { get; private set; }
+        public Client Client { get; set; }
 
-        [Key]
+        public string StopId { get; private set; }
+        public Stop Stop { get; set; }
+
         public string TagName { get; set; }
-        public string StopId { get; set; }
+
     }
 }

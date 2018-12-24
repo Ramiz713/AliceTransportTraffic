@@ -10,10 +10,11 @@ namespace TrafficTimetable
     {
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.Entity<ClientTag>().HasKey(table => new {
-                table.ClientId,
-                table.TagName
-            });
+            builder.Entity<ClientTag>().HasKey(c => new { c.ClientId, c.TagName });
+            builder.Entity<ClientTag>().HasIndex(c => new { c.ClientId, c.TagName });
+
+            builder.Entity<ClientState>().HasKey(c => new { c.ClientId });
+            builder.Entity<ClientState>().HasIndex(c => new { c.ClientId });
         }
 
         public DbSet<Client> Clients { get; set; }

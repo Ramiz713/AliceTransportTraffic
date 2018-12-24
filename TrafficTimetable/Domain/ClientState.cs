@@ -21,6 +21,8 @@ namespace TrafficTimetable.Domain
         [Key]
         public string ClientId { get; set; }
 
+        public Client Client { get; set; }
+
         public string SessionId { get; set; }
 
         public Status ClientStatus { get; set; }

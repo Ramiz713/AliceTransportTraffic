@@ -20,6 +20,20 @@ namespace TrafficTimetable.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Stops",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    Name = table.Column<string>(nullable: true),
+                    Url = table.Column<string>(nullable: true),
+                    Routes = table.Column<List<string>>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Stops", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ClientStates",
                 columns: table => new
                 {
@@ -36,6 +50,12 @@ namespace TrafficTimetable.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClientStates", x => x.ClientId);
+                    table.ForeignKey(
+                        name: "FK_ClientStates_Clients_ClientId",
+                        column: x => x.ClientId,
+                        principalTable: "Clients",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -49,33 +69,46 @@ namespace TrafficTimetable.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClientTags", x => new { x.ClientId, x.TagName });
+                    table.ForeignKey(
+                        name: "FK_ClientTags_Clients_ClientId",
+                        column: x => x.ClientId,
+                        principalTable: "Clients",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ClientTags_Stops_StopId",
+                        column: x => x.StopId,
+                        principalTable: "Stops",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Stops",
-                columns: table => new
-                {
-                    Id = table.Column<string>(nullable: false),
-                    Name = table.Column<string>(nullable: true),
-                    Url = table.Column<string>(nullable: true),
-                    Routes = table.Column<List<string>>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Stops", x => x.Id);
-                });
+            migrationBuilder.CreateIndex(
+                name: "IX_ClientStates_ClientId",
+                table: "ClientStates",
+                column: "ClientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ClientTags_StopId",
+                table: "ClientTags",
+                column: "StopId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ClientTags_ClientId_TagName",
+                table: "ClientTags",
+                columns: new[] { "ClientId", "TagName" });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Clients");
-
-            migrationBuilder.DropTable(
                 name: "ClientStates");
 
             migrationBuilder.DropTable(
                 name: "ClientTags");
+
+            migrationBuilder.DropTable(
+                name: "Clients");
 
             migrationBuilder.DropTable(
                 name: "Stops");

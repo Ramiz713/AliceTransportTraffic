@@ -11,5 +11,8 @@ namespace TrafficTimetable.Domain
 
         public string Id { get; private set; }
         public string Name { get; set; }
+
+        public ClientState State { get; set; }
+        public List<ClientTag> Tags { get;private set; }
     }
 }
