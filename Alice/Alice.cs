@@ -37,6 +37,7 @@ namespace Alice
                         $"http://localhost:1234/timetable?userid={req.Session.UserId}&sessionid={req.Session.SessionId}&command={req.Request.Command}") 
                         as HttpWebRequest;
 
+
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
             string responseString;
