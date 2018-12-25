@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using TrafficTimetable.Infrastructure;
+
 
 namespace Listener
 {
@@ -25,7 +27,7 @@ namespace Listener
                 HttpListenerRequest request = context.Request;
                 HttpListenerResponse response = context.Response;
                 string responseString;
-                if (request.QueryString.AllKeys.Contains("timetable"))
+                if (request.QueryString.AllKeys.Contains("userid") && request.QueryString.AllKeys.Contains("sessionid") && request.QueryString.AllKeys.Contains("command"))
                 {
                     responseString = GetTimetable(request.QueryString["userid"], request.QueryString["sessionid"], request.QueryString["command"]);
                 }
@@ -45,14 +47,17 @@ namespace Listener
 
         private static string GetTimetable(string userId, string sessionId, string command)
         {
-            var timetable =  TrafficTimetable.Infrastructure.Handler.Handle(userId, sessionId, command);
+            var timetable = Handler.Handle(userId, sessionId, command);
             var responseModel = new ResponseModel {Text = timetable.Item1, Buttons = timetable.Item2 };
             return JsonConvert.SerializeObject(responseModel);
         }
 
         private class ResponseModel
         {
+            [JsonProperty("Text")]
             internal string Text { get; set; }
+
+            [JsonProperty("Buttons")]
             internal string[] Buttons { get; set; }
         }
     }
