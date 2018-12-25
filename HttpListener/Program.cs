@@ -13,39 +13,41 @@ namespace Listener
     {
         static void Main(string[] args)
         {
-            Listen().Wait();
+            Listen();
         }
 
-        private static async Task Listen()
+        private static void Listen()
         {
             var listener = new HttpListener();
             listener.Prefixes.Add(@"http://localhost:1234/timetable/");
             listener.Start();
             while (true)
             {
-                HttpListenerContext context = await listener.GetContextAsync();
+                HttpListenerContext context = listener.GetContext();
                 HttpListenerRequest request = context.Request;
                 HttpListenerResponse response = context.Response;
-                string responseString;
-                if (request.QueryString.AllKeys.Contains("userid") && request.QueryString.AllKeys.Contains("sessionid") && request.QueryString.AllKeys.Contains("command"))
+                Task.Run(() =>
                 {
-                    responseString = GetTimetable(request.QueryString["userid"], request.QueryString["sessionid"], request.QueryString["command"]);
-                }
-                else
-                {
-                    responseString = "Can't find what you are looking for.";
-                }
-                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                Encoding encoding = Encoding.GetEncoding("windows-1251");
-                byte[] buffer = Encoding.GetEncoding("windows-1251").GetBytes(responseString);
-                buffer = Encoding.Convert(Encoding.GetEncoding("windows-1251"), Encoding.UTF8, buffer);
-                response.ContentLength64 = buffer.Length;
-                using (Stream output = response.OutputStream)
-                {
-                    output.Write(buffer, 0, buffer.Length);
-                }
-            }
-            //listener.Stop();
+                    string responseString;
+                    if (request.QueryString.AllKeys.Contains("userid") && request.QueryString.AllKeys.Contains("sessionid") && request.QueryString.AllKeys.Contains("command"))
+                    {
+                        responseString = GetTimetable(request.QueryString["userid"], request.QueryString["sessionid"], request.QueryString["command"]);
+                    }
+                    else
+                    {
+                        responseString = "Can't find what you are looking for.";
+                    }
+                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                    Encoding encoding = Encoding.GetEncoding("windows-1251");
+                    byte[] buffer = Encoding.GetEncoding("windows-1251").GetBytes(responseString);
+                    buffer = Encoding.Convert(Encoding.GetEncoding("windows-1251"), Encoding.UTF8, buffer);
+                    response.ContentLength64 = buffer.Length;
+                    using (Stream output = response.OutputStream)
+                    {
+                        output.Write(buffer, 0, buffer.Length);
+                    }
+                });
+            }        
         }
 
         private static string GetTimetable(string userId, string sessionId, string command)

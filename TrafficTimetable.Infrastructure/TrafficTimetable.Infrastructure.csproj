@@ -15,9 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="TrafficTimetable.Domain">
-      <HintPath>..\TrafficTimetable.Domain\bin\Debug\netcoreapp2.1\TrafficTimetable.Domain.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\TrafficTimetable.Domain\TrafficTimetable.Domain.csproj" />
   </ItemGroup>
 
 </Project>

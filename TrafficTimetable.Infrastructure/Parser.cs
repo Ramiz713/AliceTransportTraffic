@@ -10,7 +10,7 @@ namespace TrafficTimetable.Infrastructure
 {
     public static class Parser
     {
-        private static string linkPattern = "http://navi.kazantransport.ru/old-site/wap/online/";
+        private static readonly string linkPattern = "http://navi.kazantransport.ru/old-site/wap/online/";
 
         private static IHtmlDocument ParseUrl(string url)
         {

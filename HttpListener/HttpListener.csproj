@@ -17,9 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="TrafficTimetable.Infrastructure">
-      <HintPath>..\TrafficTimetable.Infrastructure\bin\Debug\netcoreapp2.1\TrafficTimetable.Infrastructure.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\TrafficTimetable.Infrastructure\TrafficTimetable.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
