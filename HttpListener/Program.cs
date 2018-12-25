@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using TrafficTimetable.Infrastructure;
 
@@ -35,7 +36,10 @@ namespace Listener
                 {
                     responseString = "Can't find what you are looking for.";
                 }
-                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                Encoding encoding = Encoding.GetEncoding("windows-1251");
+                byte[] buffer = Encoding.GetEncoding("windows-1251").GetBytes(responseString);
+                buffer = Encoding.Convert(Encoding.GetEncoding("windows-1251"), Encoding.Unicode, buffer);
                 response.ContentLength64 = buffer.Length;
                 using (Stream output = response.OutputStream)
                 {

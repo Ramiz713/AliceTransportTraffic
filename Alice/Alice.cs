@@ -45,6 +45,9 @@ namespace Alice
             {
                 responseString = reader.ReadToEnd();
             }
+            byte[] encodedBytes = Encoding.Unicode.GetBytes(responseString);
+           // encodedBytes = Encoding.Convert(Encoding.UTF8, Encoding.Unicode, encodedBytes);
+            string result = System.Text.Encoding.UTF8.GetString(encodedBytes);
 
             var responseModel = JsonConvert.DeserializeObject<Response>(responseString);
 
