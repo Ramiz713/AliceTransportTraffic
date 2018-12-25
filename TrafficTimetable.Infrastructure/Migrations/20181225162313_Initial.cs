@@ -84,6 +84,11 @@ namespace TrafficTimetable.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Clients_Id",
+                table: "Clients",
+                column: "Id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ClientStates_ClientId",
                 table: "ClientStates",
                 column: "ClientId");
@@ -97,6 +102,11 @@ namespace TrafficTimetable.Infrastructure.Migrations
                 name: "IX_ClientTags_ClientId_TagName",
                 table: "ClientTags",
                 columns: new[] { "ClientId", "TagName" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Stops_Id",
+                table: "Stops",
+                column: "Id");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

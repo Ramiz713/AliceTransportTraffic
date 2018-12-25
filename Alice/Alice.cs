@@ -43,7 +43,7 @@ namespace Alice
 
             string responseString;
 
-            using (var reader = new System.IO.StreamReader(response.GetResponseStream(), Encoding.ASCII))
+            using (var reader = new System.IO.StreamReader(response.GetResponseStream(), Encoding.UTF8))
             {
                 responseString = reader.ReadToEnd();
             }

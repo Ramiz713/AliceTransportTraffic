@@ -28,6 +28,8 @@ namespace TrafficTimetable.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Id");
+
                     b.ToTable("Clients");
                 });
 
@@ -87,6 +89,8 @@ namespace TrafficTimetable.Infrastructure.Migrations
                     b.Property<string>("Url");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Id");
 
                     b.ToTable("Stops");
                 });

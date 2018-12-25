@@ -15,6 +15,9 @@ namespace TrafficTimetable
 
             builder.Entity<ClientState>().HasKey(c => new { c.ClientId });
             builder.Entity<ClientState>().HasIndex(c => new { c.ClientId });
+
+            builder.Entity<Client>().HasIndex(c => new { c.Id });
+            builder.Entity<Stop>().HasIndex(s => new { s.Id });
         }
 
         public DbSet<Client> Clients { get; set; }

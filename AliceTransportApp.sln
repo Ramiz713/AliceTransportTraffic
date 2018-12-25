@@ -8,6 +8,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrafficTimetable.Domain", "TrafficTimetable.Domain\TrafficTimetable.Domain.csproj", "{2DEF50E3-61B4-4539-A6EF-240333EE61CF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpListener", "HttpListener\HttpListener.csproj", "{64025AD0-69D9-467C-8A4A-A610F9C6F49A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6D98A94C-B4C5-4885-9BF9-BEAEE3E0E440} = {6D98A94C-B4C5-4885-9BF9-BEAEE3E0E440}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrafficTimetable.Infrastructure", "TrafficTimetable.Infrastructure\TrafficTimetable.Infrastructure.csproj", "{6D98A94C-B4C5-4885-9BF9-BEAEE3E0E440}"
 EndProject
