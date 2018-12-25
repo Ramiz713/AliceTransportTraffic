@@ -25,27 +25,3 @@ public class Replies
         .Select(x => _reps.TryGetValue(x, out var val) ? val : null)
         .FirstOrDefault() ?? (_reps.TryGetValue("*", out var wildcard) ? wildcard : null) ?? _default)(req);
 }
-
-public static class Extensions
-{
-    public static AliceResponse Reply(
-      this AliceRequest req,
-      string text,
-      bool endSession = false,
-      ButtonModel[] buttons = null) => new AliceResponse
-      {
-          Response = new ResponseModel
-          {
-              Text = text,
-              Tts = text,
-              EndSession = endSession
-          },
-          Session = req.Session
-      };
-
-    public static bool ContainOneOf(this string text, string words)
-    {
-        var set = words.ToLower().Split().ToHashSet();
-        return text.ToLower().Split().Any(x => set.Contains(x));
-    }
-}

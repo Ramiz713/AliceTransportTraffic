@@ -2,16 +2,18 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TrafficTimetable;
 
-namespace TrafficTimetable.Migrations
+namespace TrafficTimetable.Infrastructure.Migrations
 {
     [DbContext(typeof(ClientDataContext))]
-    partial class ClientDataContextModelSnapshot : ModelSnapshot
+    [Migration("20181225162313_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -27,6 +29,8 @@ namespace TrafficTimetable.Migrations
                     b.Property<string>("Name");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Id");
 
                     b.ToTable("Clients");
                 });
@@ -87,6 +91,8 @@ namespace TrafficTimetable.Migrations
                     b.Property<string>("Url");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Id");
 
                     b.ToTable("Stops");
                 });
