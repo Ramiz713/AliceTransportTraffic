@@ -57,7 +57,7 @@ namespace TrafficTimetable.Domain
             switch (ClientStatus)
             {
                 case Status.AddingName:
-                    return "! Кажется, я вас вижу, ой, слышу впервые... давайте знакомиться! Как вас зовут?";
+                    return "Как вас зовут?";
                 case Status.AddingStop:
                     return "Назовите название остановки";
                 case Status.AddingTag:

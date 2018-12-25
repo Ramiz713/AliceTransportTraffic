@@ -3,12 +3,20 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
-using TrafficTimetable.Infrastructure;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.Net;
+using System.Text;
 
 namespace Alice
 {
+    public class Response
+    {
+        public string Text { get; set; }
+        public string[] Buttons { get; set; }
+    }
+
     public class Alice : Controller
     {
         static void Main(string[] args) => CreateWebHostBuilder(args).Build().Run();
@@ -24,10 +32,27 @@ namespace Alice
         [HttpPost("/alice")]
         public AliceResponse WebHook([FromBody] AliceRequest req)
         {
-            var response = Handler.Handle(req.Session.UserId, req.Session.SessionId, req.Request.Command);
-            if (response.Item2.Length > 0)
-                return req.Reply(response.Item1, buttons: CreateButtons(response.Item2));
-            return req.Reply(response.Item1);
+            //обращаемся к серверу, а не к проекту с расписанием
+
+            HttpWebRequest request = WebRequest.Create(
+                        $"http://localhost:1234/timetable?userid={req.Session.UserId}&sessionid={req.Session.SessionId}&command={req.Request.Command}")
+                        as HttpWebRequest;
+
+
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+            string responseString;
+
+            using (var reader = new System.IO.StreamReader(response.GetResponseStream(), Encoding.ASCII))
+            {
+                responseString = reader.ReadToEnd();
+            }
+
+            var responseModel = JsonConvert.DeserializeObject<Response>(responseString);
+
+            if (responseModel.Buttons.Length > 0)
+                return req.Reply(responseModel.Text, buttons: CreateButtons(responseModel.Buttons));
+            return req.Reply(responseModel.Text);
         }
 
         private static ButtonModel[] CreateButtons(string[] values)

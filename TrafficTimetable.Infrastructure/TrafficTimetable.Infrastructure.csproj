@@ -1,10 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <ApplicationIcon />
-    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TrafficTimetable.Domain\TrafficTimetable.Domain.csproj" />
+    <Reference Include="TrafficTimetable.Domain">
+      <HintPath>..\TrafficTimetable.Domain\bin\Debug\netcoreapp2.1\TrafficTimetable.Domain.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

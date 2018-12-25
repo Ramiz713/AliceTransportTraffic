@@ -12,8 +12,6 @@ namespace TrafficTimetable.Infrastructure
 {
     internal static class Repository
     {
-        public static void Main() { }
-
         private static List<string> nicknames = new List<string> { "Кабанчик", "Хитрый татарин", "Рыночный клуб",
             "Первичный череп", "Философский женя","Сложный пришелец" };
 

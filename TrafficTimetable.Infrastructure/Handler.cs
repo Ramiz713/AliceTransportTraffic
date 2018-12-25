@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,7 +10,6 @@ namespace TrafficTimetable.Infrastructure
     public static class Handler
     {
         private static string greeting = "Привет! Этот навык может быть полезен для быстрого получения информации о времени прибытия транспорта к остановке";
-        private static string firstMeeting = "! Кажется, я вас вижу, ой, слышу впервые... давайте знакомиться! Как вас зовут?";
 
         private static List<string> tags = new List<string> { "дом", "работа", "учёба" };
         private static Regex wordRegex = new Regex("[А-Я][а-яА-Я][^#&<>\"~;$^%{}?]{1,20}");
@@ -24,7 +24,6 @@ namespace TrafficTimetable.Infrastructure
         private static Regex tatarRegex = new Regex("салям|исэнмесез|salam|сэлам");
         private static Regex directionRegex = new Regex("1|2|первое|второе");
         private static Regex nounRegex = new Regex("a|я");
-
 
 
         public static Tuple<string, string[]> Handle(string clientId, string sessionId, string command)
@@ -61,8 +60,7 @@ namespace TrafficTimetable.Infrastructure
                 case Status.AddingStop:
                     return Tuple.Create(Repository.AddBufferStop(clientId, command), new string[0]);
                 case Status.AddingTag:
-                    var tag = GetTagWithoutEndings(command);
-                    return Tuple.Create(Repository.AddBufferTag(clientId, tag), new string[0]);
+                    return Tuple.Create(Repository.AddBufferTag(clientId, command), new string[0]);
                 case Status.AddingRoute:
                     return Tuple.Create(Repository.FindRouteDirections(clientId, command),
                         new string[2] { "1", "2" });
@@ -90,6 +88,9 @@ namespace TrafficTimetable.Infrastructure
             return Tuple.Create("Произошло недопонимание", new string[0]);
         }
 
+        private static string ConvertToResponse(string text, string[] buttons = null)
+            => JsonConvert.SerializeObject(new Response(text, buttons));
+
         private static string GetClientName(string clientId)
         {
             var clientName = Repository.GetClientName(clientId);
@@ -105,13 +106,6 @@ namespace TrafficTimetable.Infrastructure
             else if (negativeAnswerRegex.Match(command).Success)
                 return "0";
             return "not_recgn";
-        }
-
-        private static string GetTagWithoutEndings(string tag)
-        {
-            if (nounRegex.Match(tag[tag.Length - 1].ToString()).Success)
-                return tag.Substring(0, tag.Length - 1);
-            return tag;
         }
     }
 }
