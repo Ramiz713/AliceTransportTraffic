@@ -39,7 +39,7 @@ namespace Listener
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                 Encoding encoding = Encoding.GetEncoding("windows-1251");
                 byte[] buffer = Encoding.GetEncoding("windows-1251").GetBytes(responseString);
-                buffer = Encoding.Convert(Encoding.GetEncoding("windows-1251"), Encoding.Unicode, buffer);
+                buffer = Encoding.Convert(Encoding.GetEncoding("windows-1251"), Encoding.UTF8, buffer);
                 response.ContentLength64 = buffer.Length;
                 using (Stream output = response.OutputStream)
                 {

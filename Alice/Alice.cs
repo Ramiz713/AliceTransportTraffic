@@ -31,8 +31,6 @@ namespace Alice
         [HttpPost("/alice")]
         public AliceResponse WebHook([FromBody] AliceRequest req)
         {
-            //обращаемся к серверу, а не к проекту с расписанием
-
             HttpWebRequest request = WebRequest.Create(
                         $"http://localhost:1234/timetable?userid={req.Session.UserId}&sessionid={req.Session.SessionId}&command={req.Request.Command}") 
                         as HttpWebRequest;
@@ -41,13 +39,10 @@ namespace Alice
 
             string responseString;
 
-            using (var reader = new System.IO.StreamReader(response.GetResponseStream(), Encoding.ASCII))
+            using (var reader = new System.IO.StreamReader(response.GetResponseStream(), Encoding.UTF8))
             {
                 responseString = reader.ReadToEnd();
             }
-            byte[] encodedBytes = Encoding.Unicode.GetBytes(responseString);
-           // encodedBytes = Encoding.Convert(Encoding.UTF8, Encoding.Unicode, encodedBytes);
-            string result = System.Text.Encoding.UTF8.GetString(encodedBytes);
 
             var responseModel = JsonConvert.DeserializeObject<Response>(responseString);
 
