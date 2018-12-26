@@ -256,6 +256,8 @@ namespace TrafficTimetable.Infrastructure
                 ? client.BufferDirections.First().Value
                 : client.BufferDirections.Last().Value;
             var stopLink = Parser.GetStop(directionUrl, client.BufferStopName);
+            if (stopLink == null)
+                return new Response("Я не смогла найти остановку с таким названием по указанному вами маршруту.");
             var stopUri = new Uri(stopLink);
             var stopId = HttpUtility.ParseQueryString(stopUri.Query).Get("st_id");
             var stop = new Stop(stopId, client.BufferStopName, stopLink);

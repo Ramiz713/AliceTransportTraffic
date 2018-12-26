@@ -78,7 +78,8 @@ namespace TrafficTimetable.Infrastructure
                 .QuerySelectorAll("a")
                 .OfType<IHtmlAnchorElement>()
                 .Where(x => regex.Match(x.TextContent).Success);
-            return linkPattern + data.First().Href.Remove(0, 9);
+            try { return linkPattern + data.Last().Href.Remove(0, 9); }
+            catch { return null; }
         }
     }
 }
