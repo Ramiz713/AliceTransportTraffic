@@ -274,9 +274,9 @@ namespace TrafficTimetable.Infrastructure
             }
             var timeIntervals = Parser.GetTime(stop);
             string result = $"Я добавила эту остановку по тегу {client.BufferTagName}. " +
-                $"А вот и заодно время:\n";
+                $"А вот и заодно время прибытия транспорта:\n";
             foreach (var time in timeIntervals)
-                result += $"{time.Key}: {string.Join("\n", time.Value)}";
+                result += $"{string.Join("\n", time.Value)}";
             return new Response($"{result}\n");
         }
 
