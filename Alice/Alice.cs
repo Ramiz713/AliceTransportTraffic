@@ -12,7 +12,10 @@ namespace Alice
 {
     public class Response
     {
+        [JsonProperty("Text")]
         public string Text { get; set; }
+
+        [JsonProperty("Buttons")]
         public string[] Buttons { get; set; }
     }
 
@@ -37,7 +40,6 @@ namespace Alice
                         $"http://localhost:1234/timetable?userid={req.Session.UserId}&sessionid={req.Session.SessionId}&command={req.Request.Command}")
                         as HttpWebRequest;
 
-
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
             string responseString;
@@ -49,7 +51,7 @@ namespace Alice
 
             var responseModel = JsonConvert.DeserializeObject<Response>(responseString);
 
-            if (responseModel.Buttons.Length > 0)
+            if (responseModel.Buttons?.Length > 0)
                 return req.Reply(responseModel.Text, buttons: CreateButtons(responseModel.Buttons));
             return req.Reply(responseModel.Text);
         }

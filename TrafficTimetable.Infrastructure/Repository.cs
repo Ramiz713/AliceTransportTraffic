@@ -10,10 +10,58 @@ namespace TrafficTimetable.Infrastructure
 {
     internal static class Repository
     {
-        private static List<string> nicknames = new List<string> { "Кабанчик", "Хитрый татарин", "Рыночный клуб",
-            "Первичный череп", "Философский Женя","Сложный пришелец" };
+        private static List<string> nicknames = new List<string> { "Кабанчик","Зарубежный алмаз", "Рыночный клуб",
+            "Первичный череп", "Философский Женя","Сложный пришелец", "Хитрый татарин" };
 
-        public static string ShowSavedStops(string clientId)
+        private static string greeting = "Привет! Этот навык может быть полезен для быстрого получения информации о времени прибытия транспорта к остановке. Не хотите добавить остановку?";
+
+        public static Response GetStateInfo(ClientState clientState)
+        {
+            string stateInfo = null;
+            switch (clientState.ClientStatus)
+            {
+                case Status.AddingName:
+                    stateInfo = "хотели сообщить мне своё имя.";
+                    break;
+                case Status.AddingStop:
+                    stateInfo = "хотели назвать мне название остановки.";
+                    break;
+                case Status.AddingTag:
+                    stateInfo = $"хотели назвать тег для остановки {clientState.BufferStopName}, которую вы добавляли.";
+                    break;
+                case Status.AddingRoute:
+                    stateInfo = $"хотели добавить маршрут к названной вами остановке {clientState.BufferStopName}.";
+                    break;
+                case Status.ChoosingDirection:
+                    stateInfo = $"хотели выбрать направление маршрута {clientState.BufferRouteName} {clientState.BufferTransportType} у остановки {clientState.BufferStopName}.";
+                    break;
+                default: return null;
+            }
+            return new Response($"Кажется, что наша работа была прервана. Вы {stateInfo} Хотите продолжить?",
+                                new string[2] { "Да", "Нет" });
+        }
+
+        public static Response GetInstruction(ClientState clientState)
+        {
+            switch (clientState.ClientStatus)
+            {
+                case Status.AddingName:
+                    return new Response("Как вас зовут?");
+                case Status.AddingStop:
+                    return new Response("Назовите название остановки");
+                case Status.AddingTag:
+                    return new Response("Назовите тег, который хотите привязать к этой остановке");
+                case Status.AddingRoute:
+                    return new Response("Назовите маршрут, время прибытия которого хотите узнать");
+                case Status.ChoosingDirection:
+                    return new Response($"Какое из направлений?\n 1. {clientState.BufferDirections.First().Key}\n " +
+                        $"2.{clientState.BufferDirections.Last().Key}", new string[2] { "1", "2" });
+                default:
+                    return null;
+            }
+        }
+
+        public static Response ShowSavedStops(string clientId)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
@@ -32,11 +80,11 @@ namespace TrafficTimetable.Infrastructure
                         .Append("Маршруты: ")
                         .Append(string.Join(", ", stop.Routes))
                         .Append("\n\n");
-                return result.ToString();
+                return new Response(result.ToString());
             }
         }
 
-        public static ClientState CreateClientAndState(string clientId, string sessionId)
+        public static Response CreateClientAndState(string clientId, string sessionId)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
@@ -44,7 +92,7 @@ namespace TrafficTimetable.Infrastructure
                 db.ClientStates.Add(clientState);
                 db.Clients.Add(new Client(clientId));
                 db.SaveChanges();
-                return clientState;
+                return new Response(greeting, new string[1] { "хочу добавить остановку" });
             }
         }
 
@@ -55,7 +103,19 @@ namespace TrafficTimetable.Infrastructure
                     .FirstOrDefault(c => c.ClientId == clientId);
         }
 
-        public static string GetMessageInWhichStateUser(string clientId, string newSessionId)
+        public static Response ReturnDafaultState(string clientId)
+        {
+            using (ClientDataContext db = new ClientDataContext())
+            {
+                var clientState = GetClientState(clientId);
+                clientState.ClientStatus = Status.Default;
+                db.ClientStates.Update(clientState);
+                db.SaveChanges();
+                return new Response("Сказано - не сделано!");
+            }
+        }
+
+        public static Response GetResponseUserState(string clientId, string newSessionId)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
@@ -64,21 +124,21 @@ namespace TrafficTimetable.Infrastructure
                 if (clientState.ClientStatus != Status.Default) clientState.WaitingToContinue = true;
                 db.ClientStates.Update(clientState);
                 db.SaveChanges();
-                return clientState.GetStateInfo();
+                return GetStateInfo(clientState);
             }
         }
 
-        public static string ContinueWorkOrChangeToDefaultState(string clientId, bool flag)
+        public static Response ContinueWorkOrChangeToDefaultState(string clientId, bool flag)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
                 var clientState = GetClientState(clientId);
-                var response = clientState.GetInstruction();
+                var response = GetInstruction(clientState);
                 if (!flag)
                 {
                     clientState.ClientStatus = Status.Default;
 
-                    response = @"Хорошо, как говорится, забудем ""старое"")";
+                    response = new Response(@"Хорошо, как говорится, забудем ""старое""");
                 }
                 clientState.WaitingToContinue = false;
                 db.ClientStates.Update(clientState);
@@ -95,11 +155,11 @@ namespace TrafficTimetable.Infrastructure
                 clientState.ClientStatus = Status.AddingName;
                 db.ClientStates.Update(clientState);
                 db.SaveChanges();
-                return$"! Кажется, я вас вижу, ой, слышу впервые... давайте знакомиться! {clientState.GetInstruction()}";
+                return $"! Кажется, я вас вижу, ой, слышу впервые... давайте знакомиться! {GetInstruction(clientState)}";
             }
         }
 
-        public static string AutoGenerateClientName(string clientId)
+        public static Response AutoGenerateClientName(string clientId)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
@@ -110,11 +170,11 @@ namespace TrafficTimetable.Infrastructure
                     .FirstOrDefault(c => c.ClientId == clientId);
                 clientState.ClientStatus = Status.Default;
                 db.SaveChanges();
-                return $"Понимаю, вам неловко говорить своё имя...но все же я буду вас называть {client.Name}!)";
+                return new Response($"Понимаю, вам неловко говорить своё имя...но все же я буду вас называть {client.Name}!)");
             }
         }
 
-        public static string AddClientName(string clientId, string name)
+        public static Response AddClientName(string clientId, string name)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
@@ -124,7 +184,7 @@ namespace TrafficTimetable.Infrastructure
                     .FirstOrDefault(c => c.ClientId == clientId);
                 clientState.ClientStatus = Status.Default;
                 db.SaveChanges();
-                return "Отлично, рада знакомству!";
+                return new Response("Отлично, рада знакомству!");
             }
         }
 
@@ -134,7 +194,7 @@ namespace TrafficTimetable.Infrastructure
                 return db.Clients.FirstOrDefault(cl => cl.Id == clientId)?.Name;
         }
 
-        public static string ChangeStateToAddStop(string clientId)
+        public static Response ChangeStateToAddStop(string clientId)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
@@ -142,11 +202,11 @@ namespace TrafficTimetable.Infrastructure
                 clientState.ClientStatus = Status.AddingStop;
                 db.ClientStates.Update(clientState);
                 db.SaveChanges();
-                return clientState.GetInstruction();
+                return GetInstruction(clientState);
             }
         }
 
-        public static string AddBufferStop(string clientId, string stopName)
+        public static Response AddBufferStop(string clientId, string stopName)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
@@ -155,11 +215,11 @@ namespace TrafficTimetable.Infrastructure
                 clientState.ClientStatus = Status.AddingTag;
                 db.ClientStates.Update(clientState);
                 db.SaveChanges();
-                return clientState.GetInstruction();
+                return GetInstruction(clientState);
             }
         }
 
-        public static string AddBufferTag(string clientId, string tagName)
+        public static Response AddBufferTag(string clientId, string tagName)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
@@ -168,14 +228,14 @@ namespace TrafficTimetable.Infrastructure
                 clientState.ClientStatus = Status.AddingRoute;
                 db.ClientStates.Update(clientState);
                 db.SaveChanges();
-                return clientState.GetInstruction();
+                return GetInstruction(clientState);
             }
         }
 
-        public static string FindRouteDirections(string clientId, string routeName)
+        public static Response FindRouteDirections(string clientId, string routeName)
         {
             var route = Parser.FindRouteNum(routeName);
-            if (route == null) return "Мне не удалось найти такой маршрут, проверьте правильность введенного маршрута";
+            if (route == null) return new Response("Мне не удалось найти такой маршрут, проверьте правильность введенного маршрута");
             var directions = Parser.GetRouteChoice(route);
             using (ClientDataContext db = new ClientDataContext())
             {
@@ -185,11 +245,11 @@ namespace TrafficTimetable.Infrastructure
                 clientState.BufferDirections = directions;
                 db.ClientStates.Update(clientState);
                 db.SaveChanges();
-                return clientState.GetInstruction();
+                return GetInstruction(clientState);
             }
         }
 
-        public static string AddStop(string clientId, string direction)
+        public static Response AddStop(string clientId, string direction)
         {
             var client = GetClientState(clientId);
             var directionUrl = (direction == "1" || direction == "первое")
@@ -215,10 +275,28 @@ namespace TrafficTimetable.Infrastructure
                 $"А вот и заодно время:\n";
             foreach (var time in timeIntervals)
                 result += $"{time.Key}: {string.Join("\n", time.Value)}";
-            return result;
+            return new Response($"{result}\n");
         }
 
         public static string GetTimeByTag(string clientId, string tag)
+        {
+            using (ClientDataContext db = new ClientDataContext())
+            {
+                var stopId = db.ClientTags
+                    .Where(c => c.ClientId == clientId)
+                    .Where(c => c.TagName.Contains(tag))
+                    .FirstOrDefault()?.StopId;
+                if (stopId == null) return "Не удалось найти остановку по такому тегу";
+                var stop = db.Stops.Where(s => s.Id == stopId).FirstOrDefault();
+                var result = "Вот ваше время:\n";
+                var timeIntervals = Parser.GetTime(stop);
+                foreach (var time in timeIntervals)
+                    result += $"{time.Key}: {string.Join("\n  ", time.Value)}\n";
+                return result;
+            }
+        }
+
+        public static string AddRouteToTag(string clientId, string route, string tag)
         {
             using (ClientDataContext db = new ClientDataContext())
             {
