@@ -15,7 +15,6 @@ namespace TrafficTimetable.Domain
             ClientId = clientId;
             SessionId = sessionId;
             ClientStatus = Status.Default;
-            BufferTransportType = "автобуса";
         }
 
         [Key]
@@ -31,7 +30,6 @@ namespace TrafficTimetable.Domain
         public string BufferStopName { get; set; }
         public string BufferRouteName { get; set; }
         public string BufferTagName { get; set; }
-        public string BufferTransportType { get; set; }
 
         [NotMapped]
         public Dictionary<string, string> BufferDirections

@@ -22,7 +22,7 @@ namespace TrafficTimetable.Infrastructure
             return document;
         }
 
-        public static Dictionary<string, string[]> GetTime(Stop stop)
+        public static Dictionary<string, string[]> GetTime(Stop stop, List<string> routes)
         {
             var document = ParseUrl(stop.Url);
             var data = document.QuerySelectorAll("a").Where(x => x.TextContent != ">>").ToArray();
@@ -30,7 +30,7 @@ namespace TrafficTimetable.Infrastructure
             for (int i = 0; i < data.Take(data.Count() - 6).Count(); i += 4)
             {
                 var route = data[i].TextContent;
-                if (!(stop.Routes.Contains(route))) continue;
+                if (!routes.Contains(route)) continue;
                 var stopName = data[i + 1].TextContent;
                 Regex checktime = new Regex("^(?:0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$");
                 string firstTime = null;

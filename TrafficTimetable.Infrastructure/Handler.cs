@@ -18,20 +18,17 @@ namespace TrafficTimetable.Infrastructure
             if (clientState.WaitingToContinue)
             {
                 var flag = IsPositiveOrNegativeAnswer(command);
-                if (flag == "not_recgn") return new Response("Ой, кажется произошло недопонимание. " +
+                if (flag == "U") return new Response("Ой, кажется произошло недопонимание. " +
                      "Можете повторить свой запрос и выбрать из двух вариантов?", new string[2] { "Да", "Нет" });
-                return Repository.ContinueWorkOrChangeToDefaultState(clientId, (flag == "1") ? true : false);
+                return Repository.ContinueWorkOrChangeToDefaultState(clientId, (flag == "Y") ? true : false);
             }
 
             if (clientState.SessionId != sessionId)
-            {
-                var stateInfo = Repository.GetResponseUserState(clientId, sessionId);
-                if (stateInfo != null) return stateInfo;
-            }
+                return Repository.GetResponseUserState(clientId, sessionId);
 
             if (Regexes.negativeAnswerRegex.Match(command).Success && clientState.ClientStatus != Status.Default
                 && clientState.ClientStatus != Status.AddingName)
-                return Repository.ReturnDafaultState(clientId);
+                return Repository.ReturnDafaultState(clientId, "Сказано - не сделано!");
 
             switch (clientState.ClientStatus)
             {
@@ -46,7 +43,7 @@ namespace TrafficTimetable.Infrastructure
                 case Status.AddingRoute:
                     return Repository.FindRouteDirections(clientId, command);
                 case Status.ChoosingDirection:
-                    return (Regexes.directionRegex.Match(command).Success)
+                    return Regexes.directionRegex.Match(command).Success
                             ? Repository.AddStop(clientId, command)
                             : new Response("Пожалуйста, выберите между 1 или 2", new string[2] { "1", "2" });
             }
@@ -55,15 +52,24 @@ namespace TrafficTimetable.Infrastructure
                 return Repository.ShowSavedStops(clientId);
 
             if (Regexes.tagRegex.Match(command).Success)
+                return Repository.GetTimeByTag(clientId, GetTag(command));
+            if (Regexes.routeAddingRegex.Match(command).Success)
             {
-                var words = command.Split(' ');
-                var tag = words[words.Length - 1].Substring(0, 3);
-                return new Response(Repository.GetTimeByTag(clientId, tag));
+                var match = Regexes.routeRegex.Match(command);
+                if (match.Success)
+                    return Repository.AddRouteToTag(clientId, GetTag(command), match.Value.Remove(match.Value.Length - 1));
             }
             if (Regexes.stopAddingRegex.Match(command).Success)
-                return Repository.ChangeStateToAddStop(clientId);
+            {
+                var words = command.Split(' ');
+                var stop = words[words.Length - 1];
+                return (stop != "остановку")
+                    ? Repository.AddBufferStop(clientId, stop)
+                    : Repository.ChangeStateToAddStop(clientId);
+            }
             if (Regexes.tatarRegex.Match(command).Success)
                 return new Response("Абау, сездә татарча беләсез мәллә? Әфәрин!");
+
             if (Regexes.helloRegex.Match(command).Success)
                 return new Response($"Привет{GetClientName(clientId)}");
 
@@ -81,10 +87,17 @@ namespace TrafficTimetable.Infrastructure
         private static string IsPositiveOrNegativeAnswer(string command)
         {
             if (Regexes.positiveAnswerRegex.Match(command).Success)
-                return "1";
+                return "Y";
             else if (Regexes.negativeAnswerRegex.Match(command).Success)
-                return "0";
-            return "not_recgn";
+                return "N";
+            return "U";
+        }
+
+        private static string GetTag(string command)
+        {
+            var words = command.Split(' ');
+            var tag = words[words.Length - 1];
+            return tag.Remove(tag.Length - 1);
         }
     }
 }

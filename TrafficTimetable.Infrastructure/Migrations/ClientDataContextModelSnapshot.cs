@@ -45,8 +45,6 @@ namespace TrafficTimetable.Infrastructure.Migrations
 
                     b.Property<string>("BufferTagName");
 
-                    b.Property<string>("BufferTransportType");
-
                     b.Property<int>("ClientStatus");
 
                     b.Property<string>("SessionId");
@@ -66,6 +64,8 @@ namespace TrafficTimetable.Infrastructure.Migrations
 
                     b.Property<string>("TagName");
 
+                    b.Property<List<string>>("Routes");
+
                     b.Property<string>("StopId");
 
                     b.HasKey("ClientId", "TagName");
@@ -83,8 +83,6 @@ namespace TrafficTimetable.Infrastructure.Migrations
                         .ValueGeneratedOnAdd();
 
                     b.Property<string>("Name");
-
-                    b.Property<List<string>>("Routes");
 
                     b.Property<string>("Url");
 

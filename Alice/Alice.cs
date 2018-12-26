@@ -10,15 +10,6 @@ using System.Text;
 
 namespace Alice
 {
-    public class Response
-    {
-        [JsonProperty("Text")]
-        public string Text { get; set; }
-
-        [JsonProperty("Buttons")]
-        public string[] Buttons { get; set; }
-    }
-
     public class Alice : Controller
     {
         static void Main(string[] args) => CreateWebHostBuilder(args).Build().Run();
