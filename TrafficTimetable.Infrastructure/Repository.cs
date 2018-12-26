@@ -280,6 +280,7 @@ namespace TrafficTimetable.Infrastructure
                 db.ClientTags.Update(clientTag);
                 db.SaveChanges();
                 return new Response("Добавлено!");
+
             }
         }
     }
