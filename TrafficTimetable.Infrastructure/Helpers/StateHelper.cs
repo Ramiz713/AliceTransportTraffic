@@ -27,7 +27,7 @@ namespace TrafficTimetable.Infrastructure.Helpers
                 case Status.ChoosingDirection:
                     stateInfo = $"хотели выбрать направление маршрута {clientState.BufferRouteName} автобуса у остановки {clientState.BufferStopName}.";
                     break;
-                case Status.Default:
+                case Status.AnnouncingTag:
                     return new Response("Куда направляемся?");
                 default: return null;
             }

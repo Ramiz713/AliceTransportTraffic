@@ -28,7 +28,7 @@ namespace TrafficTimetable.Infrastructure
 
             if (Regexes.negativeAnswerRegex.Match(command).Success && clientState.ClientStatus != Status.Default
                 && clientState.ClientStatus != Status.AddingName)
-                return Repository.ReturnDafaultState(clientId, "Сказано - не сделано!");
+                return Repository.ReturnDefaultState(clientId, "Сказано - не сделано!");
 
             switch (clientState.ClientStatus)
             {
@@ -46,6 +46,9 @@ namespace TrafficTimetable.Infrastructure
                     return Regexes.directionRegex.Match(command).Success
                             ? Repository.AddStop(clientId, command)
                             : new Response("Пожалуйста, выберите между 1 или 2", new string[2] { "1", "2" });
+                case Status.AnnouncingTag:
+                    Repository.ReturnDefaultState(clientId);
+                    return Repository.GetTimeByTag(clientId, GetTag(command));
             }
 
             if (Regexes.showAllStopsRegex.Match(command).Success)
@@ -59,6 +62,10 @@ namespace TrafficTimetable.Infrastructure
                 if (match.Success)
                     return Repository.AddRouteToTag(clientId, GetTag(command), match.Value.Remove(match.Value.Length - 1));
             }
+
+            if (Regexes.removeAllStopsRegex.Match(command).Success)
+                return Repository.RemoveClientTags(clientId);
+
             if (Regexes.stopAddingRegex.Match(command).Success)
             {
                 var words = command.Split(' ');

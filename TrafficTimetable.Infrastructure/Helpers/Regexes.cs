@@ -12,6 +12,8 @@ namespace TrafficTimetable.Infrastructure
         public static Regex routeAddingRegex = new Regex("хочу добавить маршрут|добавь маршрут", RegexOptions.IgnoreCase);
         public static Regex routeRegex = new Regex(@"[\d] |[\d][\d] |[\d][\d][\D] ", RegexOptions.IgnoreCase);
         public static Regex tagRegex = new Regex(@"хочу поехать|я еду|я направляюсь|поехали|направляемся|еду", RegexOptions.IgnoreCase);
+        public static Regex removeAllStopsRegex = new Regex("удали мои остановки|удали остановки", RegexOptions.IgnoreCase);
+        public static Regex removeStopRegex = new Regex("удали остановку [А-Я][а-яА-Я][^#&<>\"~;$^%{}?]{1,20}", RegexOptions.IgnoreCase);
         public static Regex positiveAnswerRegex = new Regex("да|ага|надо|согласен|хочу|продолжить", RegexOptions.IgnoreCase);
         public static Regex negativeAnswerRegex = new Regex("нет|не хочу|не нужно|не надо|откажусь|отмена", RegexOptions.IgnoreCase);
         public static Regex showAllStopsRegex = new Regex("покажи все мои остановки|покажи мои остановки|покажи мои теги|мои остановки|мои теги", RegexOptions.IgnoreCase);
