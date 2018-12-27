@@ -228,7 +228,10 @@ namespace TrafficTimetable.Infrastructure
                 if (db.ClientTags
                     .Where(c => c.TagName == clientState.BufferTagName && c.ClientId == clientId).FirstOrDefault() != null)
                     return ReturnDafaultState(clientId, $"У вас уже есть такая остановка с тэгом {clientState.BufferTagName}");
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3f50a4d9997bbc61fc71fdd5fa4bf1762bd3e675
                 var clientTag = new ClientTag(clientId, clientState.BufferTagName, stopId);
                 clientTag.Routes.Add(clientState.BufferRouteName);
                 ReturnDafaultState(clientId, null);
@@ -251,8 +254,8 @@ namespace TrafficTimetable.Infrastructure
                     .FirstOrDefault();
                 if (clientTag == null) return new Response("Не удалось найти остановку по такому тегу");
                 var stop = db.Stops.Where(s => s.Id == clientTag.StopId).FirstOrDefault();
-                var result = $"Вот ваше время для маршрутов:\n";
                 var timeIntervals = Parser.GetTime(stop, clientTag.Routes);
+                var result = $"Вот ваше время для маршрутов:\n";
                 foreach (var time in timeIntervals)
                     result += $"№{time.Key}: {string.Join("\n", time.Value[0])} {string.Join("\n", time.Value[1])}\n";
                 return new Response(result);
