@@ -37,33 +37,21 @@ namespace Listener
                     {
                         responseString = "Can't find what you are looking for.";
                     }
-                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                    Encoding encoding = Encoding.GetEncoding("windows-1251");
-                    byte[] buffer = Encoding.GetEncoding("windows-1251").GetBytes(responseString);
-                    buffer = Encoding.Convert(Encoding.GetEncoding("windows-1251"), Encoding.UTF8, buffer);
+                    byte[] buffer = Encoding.UTF8.GetBytes(responseString);
                     response.ContentLength64 = buffer.Length;
                     using (Stream output = response.OutputStream)
                     {
                         output.Write(buffer, 0, buffer.Length);
                     }
                 });
-            }        
+            }
         }
 
         private static string GetTimetable(string userId, string sessionId, string command)
         {
             var timetable = Handler.Handle(userId, sessionId, command);
-            var responseModel = new ResponseModel { Text = timetable.Item1, Buttons = timetable.Item2 };
-            return JsonConvert.SerializeObject(responseModel);
-        }
-
-        private class ResponseModel
-        {
-            [JsonProperty("Text")]
-            internal string Text { get; set; }
-
-            [JsonProperty("Buttons")]
-            internal string[] Buttons { get; set; }
+            var responseModel = JsonConvert.SerializeObject(timetable);
+            return responseModel;
         }
     }
 }

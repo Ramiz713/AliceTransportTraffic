@@ -8,87 +8,73 @@ namespace TrafficTimetable.Infrastructure
 {
     public static class Handler
     {
-        private static string greeting = "Привет! Этот навык может быть полезен для быстрого получения информации о времени прибытия транспорта к остановке";
-
-        private static List<string> tags = new List<string> { "дом", "работа", "учёба" };
-        private static Regex wordRegex = new Regex("[А-Я][а-яА-Я][^#&<>\"~;$^%{}?]{1,20}");
-        private static Regex helloRegex = new Regex("привет|хай|как делишки|даров|здарова", RegexOptions.IgnoreCase);
-        private static Regex stopAddingRegex = new Regex("хочу добавить остановку", RegexOptions.IgnoreCase);
-        private static Regex routeAddingTegex = new Regex("хочу добавить маршрут к тегу", RegexOptions.IgnoreCase);
-        private static Regex numberRegex = new Regex(@"[\d]|[\d][\d]|[\d][\d][\D]");
-        private static Regex tagRegex = new Regex(@"хочу поехать|я еду|я направляюсь");
-        private static Regex positiveAnswerRegex = new Regex("да|ага|надо|согласен|хочу|продолжить", RegexOptions.IgnoreCase);
-        private static Regex negativeAnswerRegex = new Regex("нет|не хочу|не нужно|не надо|откажусь|отмена", RegexOptions.IgnoreCase);
-        private static Regex showAllStopsRegex = new Regex("покажи все мои остановки", RegexOptions.IgnoreCase);
-        private static Regex tatarRegex = new Regex("салям|исэнмесез|salam|сэлам");
-        private static Regex directionRegex = new Regex("1|2|первое|второе");
-        private static Regex nounRegex = new Regex("a|я");
-
-
-        public static Tuple<string, string[]> Handle(string clientId, string sessionId, string command)
+        public static Response Handle(string clientId, string sessionId, string command)
         {
             var clientState = Repository.GetClientState(clientId);
 
             if (clientState == null)
-            {
-                Repository.CreateClientAndState(clientId, sessionId);
-                return Tuple.Create(greeting, new string[0]);
-            }
+                return Repository.CreateClientAndState(clientId, sessionId);
 
             if (clientState.WaitingToContinue)
             {
                 var flag = IsPositiveOrNegativeAnswer(command);
-                if (flag == "not_recgn") return Tuple.Create("Ой, кажется произошло недопонимание. " +
+                if (flag == "U") return new Response("Ой, кажется произошло недопонимание. " +
                      "Можете повторить свой запрос и выбрать из двух вариантов?", new string[2] { "Да", "Нет" });
-                return Tuple.Create(Repository.ContinueWorkOrChangeToDefaultState(clientId, (flag == "1") ? true : false), new string[0]);
+                return Repository.ContinueWorkOrChangeToDefaultState(clientId, (flag == "Y") ? true : false);
             }
 
             if (clientState.SessionId != sessionId)
-            {
-                var stateInfo = Repository.GetMessageInWhichStateUser(clientId, sessionId);
-                if (stateInfo != null) return Tuple.Create($"Кажется, что наша работа была прервана. Вы {stateInfo} Хотите продолжить?",
-                    new string[2] { "Да", "Нет" });
-            }
+                return Repository.GetResponseUserState(clientId, sessionId);
+
+            if (Regexes.negativeAnswerRegex.Match(command).Success && clientState.ClientStatus != Status.Default
+                && clientState.ClientStatus != Status.AddingName)
+                return Repository.ReturnDafaultState(clientId, "Сказано - не сделано!");
 
             switch (clientState.ClientStatus)
             {
                 case Status.AddingName:
-                    if (negativeAnswerRegex.Match(command).Success)
-                        return Tuple.Create(Repository.AutoGenerateClientName(clientId), new string[0]);
-                    return Tuple.Create(Repository.AddClientName(clientId, command), new string[0]);
+                    if (Regexes.negativeAnswerRegex.Match(command).Success)
+                        return Repository.AutoGenerateClientName(clientId);
+                    return Repository.AddClientName(clientId, command);
                 case Status.AddingStop:
-                    return Tuple.Create(Repository.AddBufferStop(clientId, command), new string[0]);
+                    return Repository.AddBufferStop(clientId, command);
                 case Status.AddingTag:
-                    return Tuple.Create(Repository.AddBufferTag(clientId, command), new string[0]);
+                    return Repository.AddBufferTag(clientId, command);
                 case Status.AddingRoute:
-                    return Tuple.Create(Repository.FindRouteDirections(clientId, command),
-                        new string[2] { "1", "2" });
+                    return Repository.FindRouteDirections(clientId, command);
                 case Status.ChoosingDirection:
-                    return (directionRegex.Match(command).Success)
-                            ? Tuple.Create(Repository.AddStop(clientId, command), new string[0])
-                            : Tuple.Create("Пожалуйста, выберите между 1 или 2", new string[2] { "1", "2" });
+                    return Regexes.directionRegex.Match(command).Success
+                            ? Repository.AddStop(clientId, command)
+                            : new Response("Пожалуйста, выберите между 1 или 2", new string[2] { "1", "2" });
             }
 
-            if (showAllStopsRegex.Match(command).Success)
-                return Tuple.Create(Repository.ShowSavedStops(clientId), new string[0]);
-            if (tagRegex.Match(command).Success)
+            if (Regexes.showAllStopsRegex.Match(command).Success)
+                return Repository.ShowSavedStops(clientId);
+
+            if (Regexes.tagRegex.Match(command).Success)
+                return Repository.GetTimeByTag(clientId, GetTag(command));
+            if (Regexes.routeAddingRegex.Match(command).Success)
+            {
+                var match = Regexes.routeRegex.Match(command);
+                if (match.Success)
+                    return Repository.AddRouteToTag(clientId, GetTag(command), match.Value.Remove(match.Value.Length - 1));
+            }
+            if (Regexes.stopAddingRegex.Match(command).Success)
             {
                 var words = command.Split(' ');
-                var tag = words[words.Length - 1].Substring(0, 3);
-                return Tuple.Create(Repository.GetTimeByTag(clientId, tag), new string[0]);
+                var stop = words[words.Length - 1];
+                return (stop != "остановку")
+                    ? Repository.AddBufferStop(clientId, stop)
+                    : Repository.ChangeStateToAddStop(clientId);
             }
-            if (stopAddingRegex.Match(command).Success)
-                return Tuple.Create(Repository.ChangeStateToAddStop(clientId), new string[0]);
-            if (tatarRegex.Match(command).Success)
-                return Tuple.Create("Абау, сездә татарча беләсез мәллә? Әфәрин!", new string[0]);
-            if (helloRegex.Match(command).Success)
-                return Tuple.Create($"Привет{GetClientName(clientId)}", new string[0]);
+            if (Regexes.tatarRegex.Match(command).Success)
+                return new Response("Абау, сездә татарча беләсез мәллә? Әфәрин!");
 
-            return Tuple.Create("Произошло недопонимание", new string[0]);
+            if (Regexes.helloRegex.Match(command).Success)
+                return new Response($"Привет{GetClientName(clientId)}");
+
+            return new Response("Произошло недопонимание");
         }
-
-        private static string ConvertToResponse(string text, string[] buttons = null)
-            => JsonConvert.SerializeObject(new Response(text, buttons));
 
         private static string GetClientName(string clientId)
         {
@@ -100,11 +86,18 @@ namespace TrafficTimetable.Infrastructure
 
         private static string IsPositiveOrNegativeAnswer(string command)
         {
-            if (positiveAnswerRegex.Match(command).Success)
-                return "1";
-            else if (negativeAnswerRegex.Match(command).Success)
-                return "0";
-            return "not_recgn";
+            if (Regexes.positiveAnswerRegex.Match(command).Success)
+                return "Y";
+            else if (Regexes.negativeAnswerRegex.Match(command).Success)
+                return "N";
+            return "U";
+        }
+
+        private static string GetTag(string command)
+        {
+            var words = command.Split(' ');
+            var tag = words[words.Length - 1];
+            return tag.Remove(tag.Length - 1);
         }
     }
 }

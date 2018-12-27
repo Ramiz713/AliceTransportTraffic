@@ -26,11 +26,5 @@ namespace Alice
             resp.Response.Buttons = buttons;
             return resp;
         }
-
-        public static bool ContainOneOf(this string text, string words)
-        {
-            var set = words.ToLower().Split().ToHashSet();
-            return text.ToLower().Split().Any(x => set.Contains(x));
-        }
     }
 }

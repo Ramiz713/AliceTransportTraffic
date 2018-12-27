@@ -25,8 +25,7 @@ namespace TrafficTimetable.Infrastructure.Migrations
                 {
                     Id = table.Column<string>(nullable: false),
                     Name = table.Column<string>(nullable: true),
-                    Url = table.Column<string>(nullable: true),
-                    Routes = table.Column<List<string>>(nullable: true)
+                    Url = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -44,8 +43,7 @@ namespace TrafficTimetable.Infrastructure.Migrations
                     BufferDirection = table.Column<string>(nullable: true),
                     BufferStopName = table.Column<string>(nullable: true),
                     BufferRouteName = table.Column<string>(nullable: true),
-                    BufferTagName = table.Column<string>(nullable: true),
-                    BufferTransportType = table.Column<string>(nullable: true)
+                    BufferTagName = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -64,7 +62,8 @@ namespace TrafficTimetable.Infrastructure.Migrations
                 {
                     ClientId = table.Column<string>(nullable: false),
                     TagName = table.Column<string>(nullable: false),
-                    StopId = table.Column<string>(nullable: true)
+                    StopId = table.Column<string>(nullable: true),
+                    Routes = table.Column<List<string>>(nullable: true)
                 },
                 constraints: table =>
                 {

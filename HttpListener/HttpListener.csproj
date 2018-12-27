@@ -13,11 +13,12 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.2.0" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TrafficTimetable.Infrastructure\TrafficTimetable.Infrastructure.csproj" />
+    <Reference Include="TrafficTimetable.Infrastructure">
+      <HintPath>..\TrafficTimetable.Infrastructure\bin\Debug\netcoreapp2.1\TrafficTimetable.Infrastructure.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -11,6 +11,7 @@ namespace TrafficTimetable.Domain
         AddingStop,
         AddingTag,
         AddingRoute,
+        AddingOtherRoute,
         ChoosingDirection
     }
 }
