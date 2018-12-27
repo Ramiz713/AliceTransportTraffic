@@ -227,12 +227,11 @@ namespace TrafficTimetable.Infrastructure
                 }
                 if (db.ClientTags
                     .Where(c => c.TagName == clientState.BufferTagName && c.ClientId == clientId).FirstOrDefault() != null)
-                    return ReturnDafaultState(clientId, $"У вас уже есть такая остановка с тэгом{clientState.BufferTagName}");
+                    return ReturnDafaultState(clientId, $"У вас уже есть такая остановка с тэгом {clientState.BufferTagName}");
+
                 var clientTag = new ClientTag(clientId, clientState.BufferTagName, stopId);
                 clientTag.Routes.Add(clientState.BufferRouteName);
-                db.ClientTags.Add(clientTag);
-                clientState.ClientStatus = Status.Default;
-                db.ClientStates.Update(clientState);
+                ReturnDafaultState(clientId, null);
                 db.SaveChanges();
             }
             var timeIntervals = Parser.GetTime(stop, new List<string> { clientState.BufferRouteName });
@@ -252,10 +251,10 @@ namespace TrafficTimetable.Infrastructure
                     .FirstOrDefault();
                 if (clientTag == null) return new Response("Не удалось найти остановку по такому тегу");
                 var stop = db.Stops.Where(s => s.Id == clientTag.StopId).FirstOrDefault();
-                var result = "Вот ваше время:\n";
+                var result = $"Вот ваше время для маршрутов:\n";
                 var timeIntervals = Parser.GetTime(stop, clientTag.Routes);
                 foreach (var time in timeIntervals)
-                    result += $"{time.Key}: {string.Join("\n  ", time.Value)}\n";
+                    result += $"№{time.Key}: {string.Join("\n", time.Value[0])} {string.Join("\n", time.Value[1])}\n";
                 return new Response(result);
             }
         }
@@ -280,7 +279,6 @@ namespace TrafficTimetable.Infrastructure
                 db.ClientTags.Update(clientTag);
                 db.SaveChanges();
                 return new Response("Добавлено!");
-
             }
         }
     }
