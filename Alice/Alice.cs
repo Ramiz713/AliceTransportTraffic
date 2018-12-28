@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Alice
 {
@@ -25,26 +26,7 @@ namespace Alice
         [HttpPost("/alice")]
         public AliceResponse WebHook([FromBody] AliceRequest req)
         {
-            //обращаемся к серверу, а не к проекту с расписанием
-
-            HttpWebRequest request = WebRequest.Create(
-                        $"http://localhost:1234/timetable?userid={req.Session.UserId}&sessionid={req.Session.SessionId}&command={req.Request.Command}")
-                        as HttpWebRequest;
-
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-            string responseString;
-
-            using (var reader = new System.IO.StreamReader(response.GetResponseStream(), Encoding.UTF8))
-            {
-                responseString = reader.ReadToEnd();
-            }
-
-            var responseModel = JsonConvert.DeserializeObject<Response>(responseString);
-
-            if (responseModel.Buttons?.Length > 0)
-                return req.Reply(responseModel.Text, buttons: CreateButtons(responseModel.Buttons));
-            return req.Reply(responseModel.Text);
+            return GetResponse(req).Result;
         }
 
         private static ButtonModel[] CreateButtons(string[] values)
@@ -53,6 +35,31 @@ namespace Alice
             foreach (var val in values)
                 listOfButtons.Add(new ButtonModel { Title = val, Hide = true });
             return listOfButtons.ToArray();
+        }
+
+        private static async Task<AliceResponse> GetResponse(AliceRequest req)
+        {
+            return await Task.Run(() =>
+            {
+               HttpWebRequest request = WebRequest.Create(
+                       $"http://localhost:1234/timetable?userid={req.Session.UserId}&sessionid={req.Session.SessionId}&command={req.Request.Command}")
+                       as HttpWebRequest;
+
+               HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+               string responseString;
+
+               using (var reader = new System.IO.StreamReader(response.GetResponseStream(), Encoding.UTF8))
+               {
+                   responseString = reader.ReadToEnd();
+               }
+
+               var responseModel = JsonConvert.DeserializeObject<Response>(responseString);
+
+               if (responseModel.Buttons?.Length > 0)
+                   return req.Reply(responseModel.Text, buttons: CreateButtons(responseModel.Buttons));
+               return req.Reply(responseModel.Text);
+           });
         }
     }
 }
